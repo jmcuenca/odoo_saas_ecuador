@@ -31,31 +31,52 @@ class AccountMove(models.Model):
             if not move.l10n_ec_sri_access_key:
                 move.l10n_ec_sri_access_key = self.env['l10n_ec.sri.xml'].generate_access_key(move)
 
-            # 2. Render XML (Placeholder for QWeb call)
-            # xml_bytes = self.env['l10n_ec.sri.xml'].render_xml(move)
+            # 2. Render XML
+            # Assuming 'l10n_ec_sri.xml_invoice_v_2_26' exists and returns bytes or str
+            xml_content = self.env['l10n_ec.sri.xml'].render_xml(move)
+            if not isinstance(xml_content, bytes):
+                 xml_content = xml_content.encode('utf-8')
 
             # 3. Sign XML
-            # signed_xml = self._sign_xml(xml_bytes)
+            signed_xml = self._sign_xml(xml_content)
+            move.l10n_ec_xml_content = base64.b64encode(signed_xml)
 
-            # 4. Send (Stub for SOAP Service)
-            # response = self.env['l10n_ec.sri.service'].send_document(signed_xml)
+            # 4. Send to SRI (Real Call)
+            response = self.env['l10n_ec.sri.service'].send_document(
+                signed_xml,
+                environment=move.company_id.l10n_ec_sri_environment
+            )
 
-            # Simulated Success for Scaffold
-            move.l10n_ec_sri_status = 'sent'
-            move.l10n_ec_authorization_date = datetime.now()
+            if response.get('status') == 'RECIBIDA':
+                move.l10n_ec_sri_status = 'sent'
+                move.l10n_ec_sri_error = False
+                # Schedule Authorization Check (Optional: Immediate check)
+            else:
+                move.l10n_ec_sri_status = 'rejected'
+                move.l10n_ec_sri_error = "\n".join(response.get('messages', []))
 
-            # Note: In real impl, we handle faults here.
 
     def action_check_sri(self):
         """
-        Ping Check Status service
+        Ping Check Status service (Real Implementation)
         """
         for move in self:
             if not move.l10n_ec_sri_access_key:
                 raise UserError(_("No Access Key generated yet."))
 
-            # Simulated Check
-            move.l10n_ec_sri_status = 'authorized'
+            response = self.env['l10n_ec.sri.service'].check_authorization(move.l10n_ec_sri_access_key)
+
+            if response.get('status') == 'AUTORIZADO':
+                move.l10n_ec_sri_status = 'authorized'
+                if response.get('date'):
+                    # Parse date if necessary, assuming datetime object or ISO string from service
+                    move.l10n_ec_authorization_date = response['date']
+
+                # TODO: Store the authorized XML (with authorization tag) in attachment
+            elif response.get('status') == 'NO AUTORIZADO':
+                move.l10n_ec_sri_status = 'rejected'
+                move.l10n_ec_sri_error = "\n".join(response.get('messages', []))
+
 
     def _sign_xml(self, xml_content):
         """
