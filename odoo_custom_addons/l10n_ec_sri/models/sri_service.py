@@ -82,7 +82,9 @@ class SriService(models.AbstractModel):
         client = self._get_client(url)
 
         try:
-            response = client.service.autorizacionComprobante(claveAcceso=access_key)
+            # NOTE: Parameter is 'claveAccesoComprobante' NOT 'claveAcceso'
+            # Discovered via E2E testing against real SRI WSDL
+            response = client.service.autorizacionComprobante(claveAccesoComprobante=access_key)
 
             # SRI returns a list of authorizations (usually 1)
             if not response.autorizaciones or not response.autorizaciones.autorizacion:
