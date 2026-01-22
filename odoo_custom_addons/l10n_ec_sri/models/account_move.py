@@ -61,9 +61,15 @@ class AccountMove(models.Model):
         """
         Internal helper to call the signer lib.
         """
+        self.ensure_one()
         certificate = self.company_id.l10n_ec_certificate_id
         if not certificate:
             raise UserError(_("No active Electronic Signature found for this company."))
 
-        # Call external lib logic here
-        return xml_content
+        # REAL IMPLEMENTATION
+        # Pass the raw XML and the encrypted P12 data to the signer service
+        return self.env['l10n_ec.sri.signer'].sign_xml(
+            xml_content,
+            certificate.content, # Binary field
+            certificate.password # Decrypt if needed, here passed as stored
+        )
