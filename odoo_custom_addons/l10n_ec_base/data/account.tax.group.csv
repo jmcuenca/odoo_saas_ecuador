@@ -1,0 +1,6 @@
+id,name,country_id:id,sequence
+tax_group_iva,IVA,base.ec,10
+tax_group_ice,ICE,base.ec,20
+tax_group_ret_renta,Retención Impuesto Renta,base.ec,30
+tax_group_ret_iva,Retención IVA,base.ec,40
+tax_group_outflows,Impuesto Salida Divisas,base.ec,50
