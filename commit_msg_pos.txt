@@ -1,0 +1,8 @@
+feat(l10n_ec_pos): Implement Offline POS Sync (WP 1.4.5)
+
+- Implemented `l10n_ec_pos` module.
+- Extended `pos.order` with `l10n_ec_sri_access_key`.
+- Implemented `_generate_pos_access_key` for offline-sync resilience.
+- Configured Establishment/Emission Point per POS Register.
+- Added `sri_probe.py` for connectivity verification.
+- Verified SRI Gateway Reachability (Celcer: 200 OK).

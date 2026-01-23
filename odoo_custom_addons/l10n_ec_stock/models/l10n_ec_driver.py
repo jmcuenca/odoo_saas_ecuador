@@ -6,11 +6,12 @@ class L10nEcDriver(models.Model):
     _description = 'Transport Driver (Ecuador)'
 
     name = fields.Char(string='Driver Name', required=True)
-    identifier_type = fields.Selection([
+    identification_type = fields.Selection([
         ('cedula', 'Cédula'),
         ('ruc', 'RUC'),
         ('pasaporte', 'Pasaporte')
-    ], string='Identifier Type', default='cedula', required=True)
+    ], string='Identification Type', default='cedula', required=True)
 
-    license_number = fields.Char(string='License Number', required=True, help="Driver's License ID")
+    identification_number = fields.Char(string='Identification Number', required=True)
+    license_number = fields.Char(string='License Number', help="Driver's License ID (Licencia de Conducir)")
     active = fields.Boolean(default=True)

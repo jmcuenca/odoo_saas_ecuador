@@ -15,10 +15,9 @@
     ],
     'data': [
         'security/ir.model.access.csv',
+        'views/l10n_ec_transport_views.xml',
         'data/l10n_ec_stock_data.xml',
         'data/guia_template.xml',
-        'views/l10n_ec_driver_views.xml',
-        'views/l10n_ec_vehicle_views.xml',
         'views/stock_picking_views.xml',
     ],
     'installable': True,

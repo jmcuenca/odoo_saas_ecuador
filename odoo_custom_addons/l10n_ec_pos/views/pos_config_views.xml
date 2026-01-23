@@ -5,25 +5,15 @@
         <field name="model">pos.config</field>
         <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//block[@name='accounting_block']" position="after">
-                <block title="Ecuador SRI" name="l10n_ec_sri">
-                    <setting help="Enable Electronic Invoicing for this POS">
+            <xpath expr="//sheet" position="inside">
+                <group string="Ecuador SRI" name="l10n_ec_sri">
+                    <group>
                         <field name="l10n_ec_sri_active"/>
-                        <div class="content-group" invisible="not l10n_ec_sri_active">
-                            <div class="row mt16">
-                                <label string="Establishment" for="l10n_ec_entity" class="col-lg-3 o_light_label"/>
-                                <field name="l10n_ec_entity"/>
-                            </div>
-                            <div class="row mt16">
-                                <label string="Emission Point" for="l10n_ec_emission_point" class="col-lg-3 o_light_label"/>
-                                <field name="l10n_ec_emission_point"/>
-                            </div>
-                        </div>
-                    </setting>
-                    <setting invisible="not l10n_ec_sri_active" help="Default Customer for Consumidor Final">
-                        <field name="l10n_ec_default_partner_id"/>
-                    </setting>
-                </block>
+                        <field name="l10n_ec_entity" invisible="not l10n_ec_sri_active"/>
+                        <field name="l10n_ec_emission_point" invisible="not l10n_ec_sri_active"/>
+                        <field name="l10n_ec_default_partner_id" invisible="not l10n_ec_sri_active"/>
+                    </group>
+                </group>
             </xpath>
         </field>
     </record>

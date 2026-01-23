@@ -2,6 +2,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from odoo.addons.l10n_ec_edi.models.access_key import AccessKey
+import base64
 
 class AccountMove(models.Model):
     _inherit = 'account.move'
@@ -63,3 +64,62 @@ class AccountMove(models.Model):
             )
             move.l10n_ec_sri_access_key = key
 
+    def action_send_sri(self):
+        """
+        Trigger Manual Send to SRI.
+        """
+        for move in self:
+            if move.state != 'posted':
+                raise UserError(_("Invoice must be Posted before sending to SRI."))
+
+            # 1. Certificate Check
+            certificate = move.company_id.l10n_ec_certificate_id
+            if not certificate or certificate.state != 'active':
+                raise UserError(_("SRI Error: No active Signing Certificate configured for company %s") % move.company_id.name)
+
+            # 2. Generate Access Key
+            if not move.l10n_ec_sri_access_key:
+                move._generate_access_key()
+
+            # 3. Generate XML
+            # Use the method injected into account.edi.format by our l10n_ec_edi module
+            try:
+                # We interpret 'account.edi.format' as the model where the method exists.
+                # Since it's an override, we can call it on an empty recordset or any record.
+                xml_content = self.env['account.edi.format']._export_l10n_ec_edi(move)
+            except AttributeError:
+                # Fallback if method lookup fails (e.g. if _name was different)
+                raise UserError(_("EDI Format method _export_l10n_ec_edi not found. Check installation."))
+
+            # 4. Sign XML
+            signer = self.env['l10n_ec.sri.signer']
+            try:
+                signed_xml_bytes = signer.sign_xml(
+                    xml_content.encode('utf-8'),
+                    certificate.content,
+                    certificate.password
+                )
+            except Exception as e:
+                raise UserError(_("Signing Error: %s") % str(e))
+
+            # 5. Send to SRI
+            service = self.env['l10n_ec.sri.service']
+            env_code = '2' if move.company_id.l10n_ec_sri_environment == 'production' else '1'
+
+            response = service.send_document(signed_xml_bytes, env_code)
+
+            # 6. Process Response
+            if response.get('status') == 'RECIBIDA':
+                move.l10n_ec_sri_status = 'sent'
+                move.l10n_ec_sri_response = "RECIBIDA. Waiting for Authorization..."
+
+                # Store XML
+                move.l10n_ec_xml_data = base64.b64encode(signed_xml_bytes)
+            else:
+                move.l10n_ec_sri_status = 'rejected'
+                msgs = "\n".join(response.get('messages', []))
+                move.l10n_ec_sri_response = f"{response.get('status')}: {msgs}"
+                # We do not block the UI with error unless critical?
+                # Better to raise UserError so user knows it failed immediately?
+                # Yes, for manual button, raise error if rejected.
+                raise UserError(_("SRI Rejected: %s") % msgs)

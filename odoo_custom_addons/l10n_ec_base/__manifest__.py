@@ -15,10 +15,6 @@
     'data': [
         'security/ir.model.access.csv',
         'data/l10n_latam.document.type.csv',
-        'data/account.tax.group.csv',
-        'data/account.account.template.csv',
-        'data/account.tax.template.csv',
-        'data/l10n_ec_chart_data.xml',
         'views/res_partner_views.xml',
         'views/res_company_views.xml',
     ],

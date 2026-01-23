@@ -1,0 +1,8 @@
+feat(l10n_ec_reports): Implement ATS Engine (WP 1.4.6)
+
+- Implemented `l10n_ec_reports` module for ATS XML generation.
+- Implemented `l10n_ec.ats.wizard` with month/year selection.
+- Added `l10n_ec_sustento_code` to `account.move` (required for Purchase classification).
+- Added `l10n_ec_identifier_type` logic in ATS aggregation.
+- Implemented `ats_template.xml` matching SRI Schema v1.1.0.
+- Integrated Sustento Code into Vendor Bill UI.

@@ -1,0 +1,7 @@
+feat(l10n_ec_stock): Implement Guía de Remisión (WP 1.4.1)
+
+- Implemented `l10n_ec.driver` and `l10n_ec.vehicle` models.
+- Extended `stock.picking` for Guía logic.
+- Implemented `guia_template.xml` for `guiaRemision` v1.1.0.
+- Reused `l10n_ec_edi` engine for Signing and Sending.
+- Validated Spanish terminology: 'Cédula', 'RUC', 'Pasaporte', 'Venta', 'Traslado'.

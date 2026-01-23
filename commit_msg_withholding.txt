@@ -1,0 +1,8 @@
+feat(l10n_ec_withholding): Implement Withholding Management (WP 1.3.3)
+
+- Implemented `account.retention` model with SRI 2.0.0 compliance.
+- Implemented `l10n_ec_retention_wizard` for one-click creation from Vendor Bills.
+- Integrated with `l10n_ec_edi` for XAdES Signing and Transmission.
+- Added strict validation (5-day issuance rule).
+- Added Views, Security Rules, and Menu Items.
+- Added QWeb Template for XML generation.
