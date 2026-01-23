@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_account_move_form_inherit_l10n_ec_withholding" model="ir.ui.view">
+            <field name="name">account.move.form.inherit.l10n_ec.withholding</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//header" position="inside">
+                    <button name="%(l10n_ec_withholding.action_l10n_ec_retention_wizard)d"
+                            string="Add Retention"
+                            type="action"
+                            class="oe_highlight"
+                            invisible="move_type != 'in_invoice' or state != 'posted'"/>
+                            <!-- Only show on Posted Vendor Bills -->
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
