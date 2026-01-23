@@ -17,6 +17,17 @@ class AccountMove(models.Model):
     l10n_ec_xml_data = fields.Binary("Signed XML", attachment=True, copy=False)
     l10n_ec_sri_response = fields.Text("SRI Response", copy=False)
 
+    # Purchses Extensions (ATS)
+    l10n_ec_sustento_code = fields.Selection([
+        ('01', '01 - Crédito Tributario para IVA'),
+        ('02', '02 - Costo o Gasto'),
+        ('03', '03 - Activo Fijo'),
+        ('04', '04 - Liquidación Gastos'),
+        ('05', '05 - Liquidación Reembolsos'),
+        ('06', '06 - Sin Crédito Tributario'),
+        ('07', '07 - Pagos Reembolsos'),
+    ], string="Sustento Tributario", help="SRI code explaining the purchase purpose (ATS)")
+
     # 2026 Mandate: No cancellation of Consumidor Final
     def button_cancel_sri(self):
         for move in self:
