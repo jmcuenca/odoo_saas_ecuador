@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+SRI Access Key Generator (Shared Utility)
+This file is designed to be imported as a python module, NOT as an Odoo Model.
+Usage: from odoo.addons.l10n_ec_edi.models.access_key import AccessKey
+"""
 import random
 from datetime import datetime
 
@@ -14,7 +19,7 @@ class AccessKey:
         Modulo 11 algorithm with weights 2..7.
         """
         if len(key_48) != 48:
-            return '0' # Should be validation error but fallback to '0' to fail SRI side if needed
+            return '0'
 
         weights = [2, 3, 4, 5, 6, 7]
         total = 0

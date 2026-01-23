@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
-from .access_key import AccessKey
+from odoo.addons.l10n_ec_edi.models.access_key import AccessKey
 
 class AccountMove(models.Model):
     _inherit = 'account.move'

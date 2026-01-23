@@ -1,64 +1,32 @@
-version: '3.8'
-
+version: '3.1'
 services:
-  # -------------------------
-  # 1. Odoo 18.0 (The Body)
-  # -------------------------
-  odoo:
+  web:
     image: odoo:18.0
-    container_name: somatech_odoo_erp
+    container_name: somatech_odoo_ec_web
     depends_on:
       - db
     ports:
-      - "8069:8069"
+      - "24500:8069"
+      - "24501:8072" # Livechat/Longpolling
     volumes:
       - ./odoo_custom_addons:/mnt/extra-addons
-      - odoo_data:/var/lib/odoo
+      - ./etc:/etc/odoo
     environment:
       - HOST=db
       - USER=odoo
       - PASSWORD=odoo
-    networks:
-      - soma_network
+    restart: always
 
-  # -------------------------
-  # 2. Database (PostgreSQL)
-  # -------------------------
   db:
-    image: postgres:14
-    container_name: somatech_odoo_db
+    image: postgres:15
+    container_name: somatech_odoo_ec_db
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_PASSWORD=odoo
       - POSTGRES_USER=odoo
     volumes:
-      - db_data:/var/lib/postgresql/data
-    networks:
-      - soma_network
-
-  # -------------------------
-  # 3. Django MCP (The Brain)
-  # -------------------------
-  django_mcp:
-    build:
-      context: ./django_mcp
-      dockerfile: Dockerfile
-    container_name: somatech_django_mcp
-    depends_on:
-      - odoo
-    ports:
-      - "8000:8000"
-    environment:
-      - ODOO_URL=http://odoo:8069
-      - ODOO_DB=odoo
-      - ODOO_PASSWORD=admin
-    networks:
-      - soma_network
+      - odoo-db-data:/var/lib/postgresql/data
+    restart: always
 
 volumes:
-  odoo_data:
-  db_data:
-
-networks:
-  soma_network:
-    driver: bridge
+  odoo-db-data:
