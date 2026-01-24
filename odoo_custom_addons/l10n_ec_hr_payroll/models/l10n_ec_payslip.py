@@ -70,13 +70,23 @@ class L10nEcPayslip(models.Model):
     def _compute_iess(self):
         """
         Calculate IESS contributions using configurable rates.
-        Rates from ir.config_parameter for easy regulatory updates.
+        Rates from ir.config_parameter - NO HARDCODED FALLBACKS.
         """
         ICP = self.env['ir.config_parameter'].sudo()
 
-        # Get IESS rates from config (configurable, not hardcoded)
-        iess_personal_rate = float(ICP.get_param('l10n_ec.iess_aporte_personal', '9.45')) / 100
-        iess_employer_rate = float(ICP.get_param('l10n_ec.iess_aporte_patronal', '11.15')) / 100
+        # Get IESS rates from config - NO HARDCODED DEFAULTS
+        iess_personal_param = ICP.get_param('l10n_ec.iess_aporte_personal')
+        iess_employer_param = ICP.get_param('l10n_ec.iess_aporte_patronal')
+
+        if not iess_personal_param or not iess_employer_param:
+            raise ValueError(
+                "Missing IESS configuration. "
+                "Please configure l10n_ec.iess_aporte_personal and l10n_ec.iess_aporte_patronal "
+                "in System Parameters or install l10n_ec_hr_payroll properly."
+            )
+
+        iess_personal_rate = float(iess_personal_param) / 100
+        iess_employer_rate = float(iess_employer_param) / 100
 
         for rec in self:
             # IESS Personal contribution
@@ -86,12 +96,14 @@ class L10nEcPayslip(models.Model):
 
     @api.depends('total_income', 'contract_id.l10n_ec_accumulate_13', 'contract_id.l10n_ec_accumulate_14', 'contract_id.l10n_ec_accumulate_reserve')
     def _compute_benefits(self):
-        # Fetch SBU from Config Parameter, default to 482.0 (2026 value per Acuerdo MDT-2025-195)
-        sbu_param = self.env['ir.config_parameter'].sudo().get_param('l10n_ec.sbu', '482.0')
-        try:
-            sbu = float(sbu_param)
-        except ValueError:
-            sbu = 482.0  # SBU 2026
+        # Fetch SBU from Config Parameter - NO HARDCODED FALLBACK
+        sbu_param = self.env['ir.config_parameter'].sudo().get_param('l10n_ec.sbu')
+        if not sbu_param:
+            raise ValueError(
+                "Missing SBU configuration. "
+                "Please configure l10n_ec.sbu in System Parameters or install l10n_ec properly."
+            )
+        sbu = float(sbu_param)
 
         for rec in self:
             # 13th: Total Income / 12
