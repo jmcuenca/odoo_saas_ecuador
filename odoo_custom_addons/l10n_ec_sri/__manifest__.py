@@ -38,8 +38,6 @@ Complete SRI (Servicio de Rentas Internas) integration:
     ],
     'data': [
         'security/ir.model.access.csv',
-        'data/sri_error_codes.xml',
-        'data/cron_jobs.xml',
         'data/ir_sequence_data.xml',
         'views/menus.xml',
         'views/res_company_views.xml',
