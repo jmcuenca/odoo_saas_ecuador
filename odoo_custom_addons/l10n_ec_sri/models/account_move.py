@@ -72,7 +72,9 @@ class AccountMove(models.Model):
                     # Parse date if necessary, assuming datetime object or ISO string from service
                     move.l10n_ec_authorization_date = response['date']
 
-                # TODO: Store the authorized XML (with authorization tag) in attachment
+                # Store authorized XML if provided in response
+                if response.get('authorized_xml'):
+                    move.l10n_ec_xml_content = base64.b64encode(response['authorized_xml'].encode('utf-8'))
             elif response.get('status') == 'NO AUTORIZADO':
                 move.l10n_ec_sri_status = 'rejected'
                 move.l10n_ec_sri_error = "\n".join(response.get('messages', []))

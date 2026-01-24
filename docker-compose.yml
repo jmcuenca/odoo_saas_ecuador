@@ -18,6 +18,12 @@ services:
       - USER=odoo
       - PASSWORD=odoo
     restart: always
+    # AUTO-INSTALL: All Ecuador modules pre-installed. User just starts and uses.
+    command: -c /etc/odoo/odoo.conf -d odoo -i l10n_ec --without-demo=all
+    deploy:
+      resources:
+        limits:
+          memory: 3G
 
   db:
     image: postgres:15
@@ -29,6 +35,34 @@ services:
     volumes:
       - odoo-db-data:/var/lib/postgresql/data
     restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  django:
+    build:
+      context: ./django_mcp
+    container_name: somatech_django_api
+    depends_on:
+      - web
+    ports:
+      - "24502:8000"
+    volumes:
+      - ./django_mcp:/app
+    environment:
+      - ODOO_URL=http://web:8069
+      - ODOO_DB=odoo
+      - ODOO_USERNAME=admin
+      - ODOO_PASSWORD=admin
+      - DJANGO_SETTINGS_MODULE=core.settings
+      - SECRET_KEY=dev-secret
+      - DEBUG=True
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 1G
 
 volumes:
   odoo-db-data:

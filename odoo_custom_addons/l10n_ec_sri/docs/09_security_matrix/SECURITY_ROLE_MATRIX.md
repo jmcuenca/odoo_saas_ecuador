@@ -2,8 +2,9 @@
 ## Role × Permission × Object Authorization
 
 **Document ID**: SEC-001
-**Version**: 1.0
+**Version**: 1.1 (IMPLEMENTED)
 **Classification**: Big 4 Professional Grade
+**Implementation Status**: ✅ GROUPS DEFINED IN `l10n_ec_base/security/l10n_ec_groups.xml`
 
 ---
 

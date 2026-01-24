@@ -1,8 +1,20 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.addons.l10n_ec_edi.models.access_key import AccessKey
 import base64
+
+# =========================================================================
+# SRI 2026 CONFIGURACIÓN
+# Todos los valores regulatorios se leen de ir.config_parameter
+# para permitir actualizaciones sin modificar código.
+# =========================================================================
+
+# Defaults (usados si no hay configuración)
+DEFAULT_CF_RUC = '9999999999999'
+DEFAULT_CF_LIMIT = 50.00
+DEFAULT_ANNULMENT_DAY = 7
+
 
 class AccountMove(models.Model):
     _inherit = 'account.move'
@@ -29,14 +41,125 @@ class AccountMove(models.Model):
         ('07', '07 - Pagos Reembolsos'),
     ], string="Sustento Tributario", help="SRI code explaining the purchase purpose (ATS)")
 
+    # =========================================================================
+    # SRI 2026 REGULATORY VALIDATIONS
+    # =========================================================================
+
+    def _get_cf_ruc(self):
+        """Retorna el RUC de Consumidor Final desde configuración."""
+        return self.env['ir.config_parameter'].sudo().get_param(
+            'l10n_ec.consumidor_final_ruc', DEFAULT_CF_RUC
+        )
+
+    def _get_cf_limit(self):
+        """Retorna el límite de factura CF desde configuración."""
+        param = self.env['ir.config_parameter'].sudo().get_param(
+            'l10n_ec.consumidor_final_limit', str(DEFAULT_CF_LIMIT)
+        )
+        return float(param)
+
+    def _get_annulment_day(self):
+        """Retorna el día límite para anulación desde configuración."""
+        param = self.env['ir.config_parameter'].sudo().get_param(
+            'l10n_ec.annulment_day_limit', str(DEFAULT_ANNULMENT_DAY)
+        )
+        return int(param)
+
+    @api.constrains('amount_total', 'partner_id', 'move_type')
+    def _check_consumidor_final_limit(self):
+        """
+        SRI 2026 Rule: Consumidor Final invoices cannot exceed configured limit.
+        Resolution NAC-DGERCGC25-00000017
+        Default limit: $50 USD (configurable via l10n_ec.consumidor_final_limit)
+        """
+        for move in self:
+            if move.move_type not in ('out_invoice', 'out_refund'):
+                continue
+
+            cf_ruc = move._get_cf_ruc()
+            cf_limit = move._get_cf_limit()
+
+            if move.partner_id and move.partner_id.vat == cf_ruc:
+                if move.amount_total > cf_limit:
+                    raise ValidationError(_(
+                        "Regulación SRI 2026: Facturas a Consumidor Final (%s) "
+                        "no pueden superar $%.2f USD.\n"
+                        "Total actual: $%.2f"
+                    ) % (cf_ruc, cf_limit, move.amount_total))
+
+    @api.constrains('state')
+    def _check_annulment_deadline(self):
+        """
+        SRI 2026 Rule: Authorized invoices can only be annulled until
+        day 7 of the month following emission.
+        Resolution NAC-DGERCGC25-00000017
+        """
+        from datetime import date
+        for move in self:
+            if move.state == 'cancel' and move.l10n_ec_sri_status == 'authorized':
+                if move.invoice_date:
+                    emission_date = move.invoice_date
+                    today = date.today()
+
+                    # Calculate deadline: day 7 of next month
+                    if emission_date.month == 12:
+                        deadline = date(emission_date.year + 1, 1, 7)
+                    else:
+                        deadline = date(emission_date.year, emission_date.month + 1, 7)
+
+                    if today > deadline:
+                        raise ValidationError(_(
+                            "SRI 2026 (Res. NAC-DGERCGC25-00000017): "
+                            "No se puede anular esta factura autorizada.\n\n"
+                            "Fecha de emisión: %s\n"
+                            "Fecha límite de anulación: %s\n"
+                            "Fecha actual: %s"
+                        ) % (emission_date, deadline, today))
+
     # 2026 Mandate: No cancellation of Consumidor Final
     def button_cancel_sri(self):
+        """Cancel invoice with SRI 2026 validations."""
         for move in self:
             if move.l10n_ec_sri_status == 'authorized':
-                # Check for Consumidor Final Rule
-                if move.partner_id.vat == '9999999999999':
-                     raise UserError(_("SRI 2026 Rule: Cannot cancel Authorized invoices for Consumidor Final."))
-        return super(AccountMove, self).button_cancel() # Standard cancel logic needs review
+                # Check for Consumidor Final Rule - use configurable RUC
+                cf_ruc = move._get_cf_ruc()
+                if move.partner_id.vat == cf_ruc:
+                    raise UserError(_(
+                        "SRI 2026: Facturas autorizadas a Consumidor Final (%s) "
+                        "no pueden ser anuladas."
+                    ) % cf_ruc)
+
+                # Check annulment deadline
+                move._check_cancellation_allowed()
+
+        return super(AccountMove, self).button_cancel()
+
+    def _check_cancellation_allowed(self):
+        """Validate cancellation deadline (day 7 of next month)."""
+        from datetime import date
+        self.ensure_one()
+
+        if not self.invoice_date:
+            return True
+
+        annulment_day = self._get_annulment_day()
+        today = date.today()
+        emission = self.invoice_date
+
+        # Calculate deadline
+        if emission.month == 12:
+            deadline = date(emission.year + 1, 1, annulment_day)
+        else:
+            deadline = date(emission.year, emission.month + 1, annulment_day)
+
+        if today > deadline:
+            raise ValidationError(_(
+                "SRI 2026: No se puede anular.\n\n"
+                "Fecha límite: día %s del mes siguiente.\n"
+                "Emisión: %s | Límite: %s | Hoy: %s"
+            ) % (annulment_day, emission, deadline, today))
+
+        return True
 
     def _generate_access_key(self):
         for move in self:
@@ -48,9 +171,9 @@ class AccountMove(models.Model):
             company = move.company_id
              # Environment: 1=Test, 2=Prod
             env = '2' if company.l10n_ec_sri_environment == 'production' else '1'
-             # TODO: Get establishment/emission point from Journal
-            estab = '001'
-            pto = '001'
+            # Get establishment/emission point from company or default
+            estab = getattr(company, 'l10n_ec_establishment', '001') or '001'
+            pto = getattr(company, 'l10n_ec_emission_point', '001') or '001'
             seq = move.name.split('/')[-1] if '/' in move.name else move.name[-9:] # Simple logic, needs refinement
 
             key = AccessKey.generate(
@@ -119,7 +242,57 @@ class AccountMove(models.Model):
                 move.l10n_ec_sri_status = 'rejected'
                 msgs = "\n".join(response.get('messages', []))
                 move.l10n_ec_sri_response = f"{response.get('status')}: {msgs}"
-                # We do not block the UI with error unless critical?
-                # Better to raise UserError so user knows it failed immediately?
-                # Yes, for manual button, raise error if rejected.
-                raise UserError(_("SRI Rejected: %s") % msgs)
+                raise UserError(_("SRI Rechazado: %s") % msgs)
+
+    # =========================================================================
+    # AUTO-SEND TO SRI ON POST (2026 IMMEDIATE TRANSMISSION REQUIREMENT)
+    # =========================================================================
+
+    def action_post(self):
+        """
+        Override to auto-send to SRI when configured.
+
+        SRI 2026 (Res. NAC-DGERCGC25-00000017):
+        Transmisión INMEDIATA de comprobantes electrónicos.
+        """
+        result = super(AccountMove, self).action_post()
+
+        # Check if auto-send is enabled
+        auto_send = self.env['ir.config_parameter'].sudo().get_param(
+            'l10n_ec.auto_send_sri', 'False'
+        )
+
+        if auto_send.lower() in ('true', '1', 'yes'):
+            for move in self:
+                # Only for Ecuador sales invoices
+                if move.company_id.country_id.code != 'EC':
+                    continue
+                if move.move_type not in ('out_invoice', 'out_refund'):
+                    continue
+
+                # Check if certificate is configured
+                certificate = move.company_id.l10n_ec_certificate_id
+                if not certificate or certificate.state != 'active':
+                    # No certificate - skip auto-send, log warning
+                    import logging
+                    _logger = logging.getLogger(__name__)
+                    _logger.warning(
+                        "SRI Auto-send skipped for %s: No active certificate",
+                        move.name
+                    )
+                    continue
+
+                # Auto-send to SRI
+                try:
+                    move.action_send_sri()
+                except Exception as e:
+                    # Log error but don't block posting
+                    import logging
+                    _logger = logging.getLogger(__name__)
+                    _logger.error(
+                        "SRI Auto-send failed for %s: %s",
+                        move.name, str(e)
+                    )
+                    move.l10n_ec_sri_response = f"Auto-send error: {e}"
+
+        return result

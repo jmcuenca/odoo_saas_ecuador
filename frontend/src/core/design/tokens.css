@@ -1,0 +1,193 @@
+/* SomaTech Design System - Tokens */
+
+:root {
+    /* ═══════════════════════════════════════════════════════════
+     COLOR PALETTE - Ecuador Flag Inspired
+     ═══════════════════════════════════════════════════════════ */
+
+    /* Primary - Deep Blue (Ecuador Flag) */
+    --color-primary-50: #e8eaf6;
+    --color-primary-100: #c5cae9;
+    --color-primary-200: #9fa8da;
+    --color-primary-300: #7986cb;
+    --color-primary-400: #5c6bc0;
+    --color-primary-500: #3f51b5;
+    --color-primary-600: #3949ab;
+    --color-primary-700: #303f9f;
+    --color-primary-800: #283593;
+    --color-primary-900: #1a237e;
+    --color-primary: var(--color-primary-900);
+
+    /* Secondary - Golden Yellow (Ecuador Flag) */
+    --color-secondary-50: #fff8e1;
+    --color-secondary-100: #ffecb3;
+    --color-secondary-200: #ffe082;
+    --color-secondary-300: #ffd54f;
+    --color-secondary-400: #ffca28;
+    --color-secondary-500: #ffc107;
+    --color-secondary-600: #ffb300;
+    --color-secondary-700: #ffa000;
+    --color-secondary-800: #ff8f00;
+    --color-secondary-900: #ff6f00;
+    --color-secondary: var(--color-secondary-600);
+
+    /* Accent - Vibrant Red (Ecuador Flag) */
+    --color-accent: #e53935;
+
+    /* Semantic Colors */
+    --color-success: #4caf50;
+    --color-warning: #ff9800;
+    --color-danger: #f44336;
+    --color-info: #2196f3;
+
+    /* ═══════════════════════════════════════════════════════════
+     DARK MODE NEUTRALS
+     ═══════════════════════════════════════════════════════════ */
+    --color-bg-primary: #0f0f23;
+    --color-bg-secondary: #1a1a2e;
+    --color-bg-tertiary: #16213e;
+    --color-bg-elevated: #1e1e3f;
+
+    --color-text-primary: #ffffff;
+    --color-text-secondary: rgba(255, 255, 255, 0.7);
+    --color-text-muted: rgba(255, 255, 255, 0.5);
+    --color-text-disabled: rgba(255, 255, 255, 0.3);
+
+    --color-border: rgba(255, 255, 255, 0.1);
+    --color-border-hover: rgba(255, 255, 255, 0.2);
+    --color-border-focus: var(--color-secondary);
+
+    /* ═══════════════════════════════════════════════════════════
+     GLASSMORPHISM
+     ═══════════════════════════════════════════════════════════ */
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-bg-hover: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --glass-blur: blur(12px);
+
+    /* ═══════════════════════════════════════════════════════════
+     GRADIENTS
+     ═══════════════════════════════════════════════════════════ */
+    --gradient-primary: linear-gradient(135deg, var(--color-primary-900), var(--color-primary-700));
+    --gradient-secondary: linear-gradient(135deg, var(--color-secondary-600), var(--color-secondary-400));
+    --gradient-accent: linear-gradient(135deg, var(--color-accent), #ff7043);
+    --gradient-hero: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+    --gradient-card: linear-gradient(145deg, rgba(26, 35, 126, 0.15), rgba(48, 63, 159, 0.05));
+
+    /* ═══════════════════════════════════════════════════════════
+     TYPOGRAPHY
+     ═══════════════════════════════════════════════════════════ */
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+    --font-size-xs: 0.75rem;
+    /* 12px */
+    --font-size-sm: 0.875rem;
+    /* 14px */
+    --font-size-base: 1rem;
+    /* 16px */
+    --font-size-lg: 1.125rem;
+    /* 18px */
+    --font-size-xl: 1.25rem;
+    /* 20px */
+    --font-size-2xl: 1.5rem;
+    /* 24px */
+    --font-size-3xl: 2rem;
+    /* 32px */
+    --font-size-4xl: 2.5rem;
+    /* 40px */
+    --font-size-5xl: 3rem;
+    /* 48px */
+
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    --line-height-tight: 1.25;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+
+    /* ═══════════════════════════════════════════════════════════
+     SPACING SCALE (4px base)
+     ═══════════════════════════════════════════════════════════ */
+    --space-0: 0;
+    --space-1: 0.25rem;
+    /* 4px */
+    --space-2: 0.5rem;
+    /* 8px */
+    --space-3: 0.75rem;
+    /* 12px */
+    --space-4: 1rem;
+    /* 16px */
+    --space-5: 1.25rem;
+    /* 20px */
+    --space-6: 1.5rem;
+    /* 24px */
+    --space-8: 2rem;
+    /* 32px */
+    --space-10: 2.5rem;
+    /* 40px */
+    --space-12: 3rem;
+    /* 48px */
+    --space-16: 4rem;
+    /* 64px */
+    --space-20: 5rem;
+    /* 80px */
+    --space-24: 6rem;
+    /* 96px */
+
+    /* ═══════════════════════════════════════════════════════════
+     BORDER RADIUS
+     ═══════════════════════════════════════════════════════════ */
+    --radius-none: 0;
+    --radius-sm: 0.25rem;
+    /* 4px */
+    --radius-md: 0.5rem;
+    /* 8px */
+    --radius-lg: 0.75rem;
+    /* 12px */
+    --radius-xl: 1rem;
+    /* 16px */
+    --radius-2xl: 1.5rem;
+    /* 24px */
+    --radius-full: 9999px;
+
+    /* ═══════════════════════════════════════════════════════════
+     SHADOWS
+     ═══════════════════════════════════════════════════════════ */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.35);
+    --shadow-glow-primary: 0 0 20px rgba(26, 35, 126, 0.5);
+    --shadow-glow-secondary: 0 0 20px rgba(255, 179, 0, 0.5);
+
+    /* ═══════════════════════════════════════════════════════════
+     TRANSITIONS
+     ═══════════════════════════════════════════════════════════ */
+    --transition-fast: 150ms ease;
+    --transition-base: 250ms ease;
+    --transition-slow: 350ms ease;
+    --transition-spring: 300ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    /* ═══════════════════════════════════════════════════════════
+     Z-INDEX SCALE
+     ═══════════════════════════════════════════════════════════ */
+    --z-base: 0;
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-fixed: 300;
+    --z-modal-backdrop: 400;
+    --z-modal: 500;
+    --z-toast: 600;
+    --z-tooltip: 700;
+
+    /* ═══════════════════════════════════════════════════════════
+     LAYOUT
+     ═══════════════════════════════════════════════════════════ */
+    --container-max: 1280px;
+    --header-height: 72px;
+}

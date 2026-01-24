@@ -179,79 +179,42 @@ class L10nEcAtsWizard(models.TransientModel):
             'company': self.company_id,
             'purchases': purchases_data,
             'sales': sales_data,
-            'cancelled': [], # TODO: Fetch cancelled moves
+            'cancelled': self._get_cancelled_documents(date_start, date_end),
             'total_sales': total_sales_period,
             'format_float': lambda x, p: ("%." + str(p) + "f") % x,
         }
 
         xml_content = self.env['ir.qweb']._render('l10n_ec_reports.l10n_ec_ats_xml', values)
         return xml_content.encode('utf-8')
-    _name = 'l10n_ec.ats.wizard'
-    _description = 'Anexo Transaccional Simplificado (ATS) Wizard'
 
-    date_month = fields.Selection([
-        ('01', 'January'), ('02', 'February'), ('03', 'March'), ('04', 'April'),
-        ('05', 'May'), ('06', 'June'), ('07', 'July'), ('08', 'August'),
-        ('09', 'September'), ('10', 'October'), ('11', 'November'), ('12', 'December')
-    ], string='Month', required=True, default=lambda self: datetime.now().strftime('%m'))
-
-    date_year = fields.Char(string='Year', required=True, default=lambda self: datetime.now().strftime('%Y'))
-    company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company)
-
-    # Result
-    xml_data = fields.Binary('ATS XML', readonly=True)
-    xml_filename = fields.Char(string='Filename', readonly=True)
-
-    def action_generate_ats(self):
-        self.ensure_one()
-        xml_content = self.generate_xml()
-        self.xml_data = base64.b64encode(xml_content)
-        self.xml_filename = f"ATS_{self.date_month}_{self.date_year}_{self.company_id.vat}.xml"
-
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'l10n_ec.ats.wizard',
-            'view_mode': 'form',
-            'res_id': self.id,
-            'target': 'new',
-        }
-
-    def generate_xml(self):
-        """
-        Orchestrates the XML generation using QWeb (or manual ElementTree if complex).
-        Given the complexity of ATS (nested lists of purchases, sales, cancelled),
-        manual construction or a very structured QWeb is needed.
-        Scaffolding generic structure here.
-        """
-        # 1. Fetch Data
-        period_start = f"{self.date_year}-{self.date_month}-01"
-        # Logic to find end of month...
-
-        purchases = self.env['account.move'].search([
-            ('move_type', '=', 'in_invoice'),
-            ('invoice_date', '>=', period_start), # Simplified
-            ('state', '=', 'posted'),
+    def _get_cancelled_documents(self, date_start, date_end):
+        """Fetch cancelled/voided invoices for the ATS period."""
+        domain = [
+            ('move_type', 'in', ['out_invoice', 'in_invoice']),
+            ('invoice_date', '>=', date_start),
+            ('invoice_date', '<', date_end),
+            ('state', '=', 'cancel'),
             ('company_id', '=', self.company_id.id)
-        ])
+        ]
+        cancelled_moves = self.env['account.move'].search(domain)
 
-        sales = self.env['account.move'].search([
-            ('move_type', '=', 'out_invoice'),
-            ('invoice_date', '>=', period_start), # Simplified
-            ('state', '=', 'posted'),
-            ('company_id', '=', self.company_id.id)
-        ])
+        cancelled_data = []
+        for inv in cancelled_moves:
+            doc_type = inv.l10n_latam_document_type_id.code or '01'
+            parts = inv.l10n_latam_document_number.split('-') if inv.l10n_latam_document_number else []
+            if len(parts) == 3:
+                estab, pto, sec = parts
+            else:
+                estab, pto, sec = '001', '001', '999999999'
 
-        # 2. Render Template
-        values = {
-            'wizard': self,
-            'company': self.company_id,
-            'purchases': purchases,
-            'sales': sales,
-            'format_float': lambda x: "%.2f" % x,
-        }
+            cancelled_data.append({
+                'tipoComprobante': doc_type,
+                'estab': estab,
+                'ptoEmi': pto,
+                'secuencialIni': sec,
+                'secuencialFin': sec,
+                'autorizacion': inv.l10n_ec_sri_access_key or '',
+            })
 
-        # NOTE: We need to create the template l10n_ec_ats_xml
-        # return self.env['ir.qweb']._render('l10n_ec_reports.l10n_ec_ats_xml', values).encode('utf-8')
+        return cancelled_data
 
-        # For Scaffold, return dummy XML
-        return b"<?xml version='1.0'?><iva><TipoIDInformante>R</TipoIDInformante></iva>"

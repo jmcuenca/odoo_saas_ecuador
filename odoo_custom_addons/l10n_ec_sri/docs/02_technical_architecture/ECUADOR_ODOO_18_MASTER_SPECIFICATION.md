@@ -253,18 +253,16 @@ graph TD
     Q --> R[account_reports]
 ```
 
-#### XAdES-BES Signing (Hybrid Python/Rust Architecture)
+#### XAdES-BES Signing (Pure Python Architecture)
 
-> **STATE-OF-THE-ART TECHNOLOGY DECISION**: For maximum performance and security, we implement a **Hybrid Python/Rust Architecture** for cryptographic operations.
+> **CURRENT IMPLEMENTATION**: We use a **Pure Python** approach for cryptographic operations, leveraging the mature `cryptography` and `lxml` libraries.
 
-**Why Rust for XAdES?**
-| Requirement | Python | Rust | Winner |
-|:------------|:-------|:-----|:-------|
-| Signature Speed (1000 docs/min) | ~500ms/doc | ~5ms/doc | **Rust** |
-| Memory Safety | GC-based | Compile-time | **Rust** |
-| P12 Key Handling | Good | Zero-copy | **Rust** |
-| Integration with Odoo | Native | FFI (PyO3) | Python |
-| **Final Architecture** | Orchestration | Crypto Core | **Hybrid** |
+**Libraries Used:**
+| Library | Purpose |
+|:--------|:--------|
+| `cryptography` | P12 certificate parsing, RSA-SHA1 signing |
+| `lxml` | XML canonicalization (C14N) |
+| `zeep` | SRI SOAP client |
 
 **Architecture Diagram:**
 
@@ -276,10 +274,9 @@ flowchart TB
         C --> D[Access Key Gen]
     end
 
-    subgraph RustCore["Rust Crypto Core (PyO3)"]
-        E[xades_signer]
-        F[mod11_verifier]
-        G[p12_handler]
+    subgraph PythonCrypto["Python Crypto Layer"]
+        E[sri_signer.py]
+        F[mod11 validator]
     end
 
     D --> E
@@ -287,144 +284,58 @@ flowchart TB
     E --> H[Signed XML]
     H --> I[SRI SOAP Client]
 
-    style RustCore fill:#ff6b35
-    style Odoo fill:#4a90d9
+    style PythonCrypto fill:#4a90d9
+    style Odoo fill:#6c757d
 ```
 
-**Rust Crate Structure:**
-```
-ec_sri_crypto/
-├── Cargo.toml
-├── src/
-│   ├── lib.rs           # PyO3 bindings
-│   ├── xades.rs         # XAdES-BES signing
-│   ├── mod11.rs         # Access key check digit
-│   ├── p12.rs           # Certificate handling
-│   └── canonicalize.rs  # C14N implementation
-└── python/
-    └── ec_sri_crypto/
-        └── __init__.py  # Python wrapper
-```
-
-**Rust Implementation (Performance-Critical XAdES):**
-```rust
-use pyo3::prelude::*;
-use openssl::pkcs12::Pkcs12;
-use openssl::sign::Signer;
-use openssl::hash::MessageDigest;
-use quick_xml::Writer;
-
-/// XAdES-BES Signer exposed to Python via PyO3
-#[pyfunction]
-fn sign_xml(
-    xml_bytes: &[u8],
-    p12_bytes: &[u8],
-    password: &str,
-) -> PyResult<Vec<u8>> {
-    // 1. Load P12 (zero-copy)
-    let pkcs12 = Pkcs12::from_der(p12_bytes)
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(
-            format!("Invalid P12: {}", e)
-        ))?;
-
-    let parsed = pkcs12.parse2(password)
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(
-            format!("Wrong password: {}", e)
-        ))?;
-
-    let pkey = parsed.pkey.ok_or_else(||
-        PyErr::new::<pyo3::exceptions::PyValueError, _>("No private key")
-    )?;
-
-    let cert = parsed.cert.ok_or_else(||
-        PyErr::new::<pyo3::exceptions::PyValueError, _>("No certificate")
-    )?;
-
-    // 2. Canonicalize XML (C14N)
-    let c14n_xml = canonicalize_xml(xml_bytes)?;
-
-    // 3. Compute SHA-1 digest
-    let digest = openssl::hash::hash(MessageDigest::sha1(), &c14n_xml)?;
-
-    // 4. Sign with RSA-SHA1
-    let mut signer = Signer::new(MessageDigest::sha1(), &pkey)?;
-    signer.update(&build_signed_info(&digest))?;
-    let signature = signer.sign_to_vec()?;
-
-    // 5. Build XAdES structure
-    let signed_xml = build_xades_envelope(
-        xml_bytes,
-        &signature,
-        &cert,
-        &digest,
-    )?;
-
-    Ok(signed_xml)
-}
-
-/// Módulo 11 check digit (SRI access key)
-#[pyfunction]
-fn compute_mod11(data: &str) -> PyResult<char> {
-    const WEIGHTS: [u32; 6] = [2, 3, 4, 5, 6, 7];
-
-    let total: u32 = data.chars()
-        .rev()
-        .enumerate()
-        .map(|(i, c)| {
-            c.to_digit(10).unwrap_or(0) * WEIGHTS[i % 6]
-        })
-        .sum();
-
-    let remainder = total % 11;
-    let check = 11 - remainder;
-
-    let digit = match check {
-        11 => '0',
-        10 => '1',
-        n => char::from_digit(n, 10).unwrap_or('0'),
-    };
-
-    Ok(digit)
-}
-
-#[pymodule]
-fn ec_sri_crypto(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(sign_xml, m)?)?;
-    m.add_function(wrap_pyfunction!(compute_mod11, m)?)?;
-    Ok(())
-}
-```
-
-**Python Integration (Odoo):**
+**Python Signing Implementation:**
 ```python
 # l10n_ec_edi/models/sri_signer.py
-try:
-    import ec_sri_crypto  # Rust crate via PyO3
-    _USE_RUST = True
-except ImportError:
-    _USE_RUST = False
-    from cryptography.hazmat.primitives.serialization import pkcs12
-    # Pure Python fallback
+from cryptography.hazmat.primitives.serialization import pkcs12
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from lxml import etree
+import hashlib
+import base64
 
-class SriSigner(models.AbstractModel):
-    _name = 'l10n_ec.sri.signer'
+def sign_xml(xml_bytes, p12_content, p12_password):
+    # 1. Load P12
+    private_key, certificate, chain = pkcs12.load_key_and_certificates(
+        p12_content, p12_password.encode()
+    )
 
-    def sign_xml(self, xml_bytes, p12_content, password):
-        if _USE_RUST:
-            # 100x faster Rust implementation
-            return ec_sri_crypto.sign_xml(xml_bytes, p12_content, password)
-        else:
-            # Fallback to pure Python
-            return self._sign_xml_python(xml_bytes, p12_content, password)
+    # 2. Canonicalize XML
+    root = etree.fromstring(xml_bytes)
+    c14n_xml = etree.tostring(root, method="c14n", exclusive=False)
+
+    # 3. Compute Digest (SHA-1 for SRI compatibility)
+    digest = hashlib.sha1(c14n_xml).digest()
+    digest_b64 = base64.b64encode(digest).decode()
+
+    # 4. Build SignedInfo
+    signed_info = build_signed_info(digest_b64)
+
+    # 5. Sign SignedInfo with RSA-SHA1
+    signature = private_key.sign(
+        etree.tostring(signed_info, method="c14n"),
+        padding.PKCS1v15(),
+        hashes.SHA1()
+    )
+
+    # 6. Build complete Signature element with XAdES QualifyingProperties
+    return build_xades_envelope(xml_bytes, signature, certificate, digest)
 ```
 
-**Performance Comparison:**
-| Metric | Pure Python | Rust (PyO3) | Improvement |
-|:-------|:------------|:------------|:------------|
-| Sign 1 document | 450ms | 4ms | **112x** |
-| Sign 1000 docs | 7.5 min | 4 sec | **112x** |
-| Memory per sign | 15 MB | 0.5 MB | **30x** |
-| P12 parse time | 50ms | 0.1ms | **500x** |
+**Performance Characteristics (Pure Python):**
+| Metric | Value |
+|:-------|:------|
+| Sign 1 document | ~450ms |
+| Sign 100 docs | ~45s |
+| Memory per sign | ~15 MB |
+| P12 parse time | ~50ms |
+
+> [!NOTE]
+> **Future Enhancement**: A Rust-based signing engine (`ec_sri_crypto`) is planned for high-volume environments requiring sub-10ms signing latency. This is NOT currently implemented.
 
 ---
 

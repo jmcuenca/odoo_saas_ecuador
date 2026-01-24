@@ -1,13 +1,35 @@
 # -*- coding: utf-8 -*-
-# Part of Universal Odoo MCP System. See LICENSE file for full copyright and licensing details.
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+#
+# Copyright 2026 Somatech.dev
+# License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
 {
-    'name': 'Ecuador SRI Electronic Invoicing (U-OMS)',
+    'name': 'Ecuador SRI Electronic Invoicing',
     'version': '18.0.1.0.0',
     'category': 'Accounting/Localizations/SRI',
     'summary': 'Full SRI Electronic Invoicing Compliance (2025-2026)',
-    'author': 'Universal Odoo MCP System',
-    'website': 'https://github.com/universal-odoo-mcp',
+    'description': """
+Ecuador SRI Integration Module
+==============================
+
+Complete SRI (Servicio de Rentas Internas) integration:
+
+* SOAP Web Services (RecepcionComprobantesOffline, AutorizacionComprobantesOffline)
+* Test and Production environments
+* Certificate management (.p12)
+* Error handling and retry logic
+* Authorization status tracking
+* RIDE report generation
+
+**Endpoints**:
+- Test: celcer.sri.gob.ec
+- Production: cel.sri.gob.ec
+
+**Regulatory Compliance**: SRI 2026
+    """,
+    'author': 'Somatech.dev, Odoo Community Association (OCA)',
+    'website': 'https://github.com/somatechlat/odoo_saas_ecuador',
     'license': 'LGPL-3',
     'depends': [
         'base',

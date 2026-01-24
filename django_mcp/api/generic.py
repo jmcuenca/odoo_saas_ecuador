@@ -1,7 +1,7 @@
 from ninja import Router
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
-from ..services.odoo_client import OdooClient
+from services.odoo_client import OdooClient
 
 router = Router()
 odoo = OdooClient()

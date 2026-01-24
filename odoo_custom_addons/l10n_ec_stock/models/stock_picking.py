@@ -55,7 +55,7 @@ class StockPicking(models.Model):
                     doc_type='06',
                     ruc=record.company_id.vat,
                     environment=env,
-                    establishment='001', # TODO: warehouse field
+                    establishment=getattr(record.picking_type_id.warehouse_id, 'l10n_ec_establishment', '001') or '001',
                     emission_point='001',
                     sequential=seq_num
                 )
