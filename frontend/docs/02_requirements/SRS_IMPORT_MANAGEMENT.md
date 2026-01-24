@@ -50,10 +50,13 @@ This document specifies the requirements for a comprehensive **Import Management
 | **FODINFA** | 0.5% | CIF Value | MIES |
 | **ISD** | 5% | Payments Abroad | SRI |
 | **IVA Importación** | 15% | CIF + Duties + FODINFA | SRI |
-| **Salvaguardia Colombia** | 30% | CIF (from Feb 2026) | SENAE |
+| **Salvaguardias** | Variable | Per Registro Oficial | SENAE |
 
 > [!IMPORTANT]
 > All rates MUST be configurable via `ir.config_parameter`. NO hardcoded values.
+>
+> **LEGAL NOTE**: Salvaguardias and special duties are ONLY valid when published in
+> **Registro Oficial de Ecuador**. Do not implement rates from news sources.
 
 ## 2.2 SENAE Processes
 
@@ -116,7 +119,7 @@ flowchart LR
 | `total_ad_valorem` | Monetary | Customs duties | Sum of line duties |
 | `total_fodinfa` | Monetary | FODINFA | CIF × 0.5% |
 | `total_isd` | Monetary | ISD | Foreign payments × 5% |
-| `total_salvaguardia` | Monetary | Safeguard duties | CIF × rate (if applicable) |
+| `total_salvaguardia` | Monetary | Safeguard duties | Per Registro Oficial |
 | `iva_base` | Monetary | IVA base | CIF + duties + FODINFA |
 | `total_iva` | Monetary | IVA amount | IVA base × 15% |
 | `total_tributos` | Monetary | Total taxes | Sum of all taxes |
