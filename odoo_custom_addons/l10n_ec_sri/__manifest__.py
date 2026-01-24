@@ -34,7 +34,8 @@ Complete SRI (Servicio de Rentas Internas) integration:
     'depends': [
         'base',
         'account',
-        'l10n_ec_base',  # Base EC module (NOT l10n_ec meta-package)
+        'l10n_ec_base',
+        'l10n_ec_edi',  # Base EDI module with field definitions
     ],
     'data': [
         'security/ir.model.access.csv',
