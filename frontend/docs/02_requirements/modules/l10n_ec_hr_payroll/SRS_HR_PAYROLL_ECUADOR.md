@@ -336,28 +336,46 @@ def compute_payslip(payslip):
 ### 3.4.2 Tax Brackets 2026
 
 > [!IMPORTANT]
-> Tax brackets MUST be configurable via model/records, not hardcoded.
+> Tax brackets per SRI **Resolución NAC-DGERCGC25-00000043** (29-dic-2025).
+> These MUST be stored in `l10n_ec.income.tax.bracket` model.
+
+**2026 Income Tax Table (Personas Naturales)**
+
+| Fracción Básica | Exceso Hasta | Impuesto FB | % Excedente |
+|-----------------|--------------|-------------|-------------|
+| $0 | $12,208 | $0 | 0% |
+| $12,208 | $15,549 | $0 | 5% |
+| $15,549 | $20,188 | $167 | 10% |
+| $20,188 | $26,700 | $631 | 12% |
+| $26,700 | $35,136 | $1,412 | 15% |
+| $35,136 | $46,575 | $2,678 | 20% |
+| $46,575 | $62,005 | $4,965 | 25% |
+| $62,005 | $82,679 | $8,823 | 30% |
+| $82,679 | $109,956 | $15,025 | 35% |
+| $109,956 | En adelante | $24,572 | 37% |
+
+**Key 2026 Change**: Base exenta increased to $12,208 (from $12,081 in 2025).
 
 Model: `l10n_ec.income.tax.bracket`
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `year` | Integer | Fiscal year |
-| `lower_limit` | Float | Lower income limit |
-| `upper_limit` | Float | Upper income limit |
-| `base_tax` | Float | Base tax amount |
-| `marginal_rate` | Float | Marginal rate (%) |
+| `year` | Integer | Fiscal year (2026) |
+| `lower_limit` | Float | Fracción Básica |
+| `upper_limit` | Float | Exceso Hasta |
+| `base_tax` | Float | Impuesto Fracción Básica |
+| `marginal_rate` | Float | % sobre Excedente |
 
-### 3.4.3 Projected Personal Expenses
+### 3.4.3 Projected Personal Expenses 2026
 
 | Category | Max Deduction |
 |----------|---------------|
 | Vivienda | Configurable |
 | Educación | Configurable |
-| Salud | Configurable |
+| Salud (with emphasis) | Configurable |
 | Alimentación | Configurable |
 | Vestimenta | Configurable |
-| **Total** | Configurable |
+| **Total** | Configurable (via `ir.config_parameter`) |
 
 ## 3.5 RDEP Generation (HR-RDEP)
 

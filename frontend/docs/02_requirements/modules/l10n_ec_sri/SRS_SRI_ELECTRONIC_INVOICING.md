@@ -50,17 +50,24 @@ This SRS defines requirements for the **Ecuador SRI Electronic Invoicing Module*
 |------------|-----------|---------|
 | **LORTI** | Asamblea Nacional | Tax law |
 | **Reglamento LORTI** | Presidente | Procedures |
-| **Resolución NAC-DGERCGC24-00000008** | SRI | 2026 e-invoice rules |
+| **Resolución NAC-DGERCGC25-00000017** | SRI | 2026 e-invoice rules |
+| **Resolución NAC-DGERCGC25-00000014** | SRI | Base 2025 rules |
 | **Ficha Técnica v2.1** | SRI | XML schemas |
 
-## 2.2 Key 2026 Rules
+## 2.2 Key 2026 Rules (CRITICAL)
+
+> [!WARNING]
+> **MAJOR 2026 CHANGES EFFECTIVE JANUARY 1, 2026**
+> Per Resolución NAC-DGERCGC25-00000017, the following rules are NOW MANDATORY:
 
 | Rule | Legal Basis | Implementation |
 |------|-------------|----------------|
-| Consumidor Final limit | Res. NAC-DGERCGC25-00000017 | `ir.config_parameter` |
-| Annulment deadline | Art. 193 Reglamento LORTI | Day 7 next month |
+| **Real-time transmission** | Res. NAC-DGERCGC25-00000017 | Emission date = Operation date |
+| **No deferred transmission** | Res. NAC-DGERCGC25-00000017 | NO more 4-day delay allowed |
+| **CF invoices cannot be annulled** | Res. NAC-DGERCGC25-00000017 | Block CF annulment after transmission |
+| Annulment deadline (non-CF) | Art. 193 Reglamento LORTI | Day 7 next month |
 | IVA 15% | LORTI Art. 65 | Tax configuration |
-| Auto-send on post | Res. NAC-DGERCGC24-00000008 | `action_post()` |
+| Auto-send on post | Res. NAC-DGERCGC25-00000017 | REQUIRED on `action_post()` |
 
 > [!CAUTION]
 > **ZERO HARDCODED VALUES**
@@ -321,7 +328,7 @@ stateDiagram-v2
 
 # 9. CONSUMIDOR FINAL RULES
 
-## 9.1 Requirements (Art. 193 Reglamento LORTI)
+## 9.1 Requirements (Res. NAC-DGERCGC25-00000017)
 
 | Rule | Requirement | Config Key |
 |------|-------------|------------|
@@ -331,26 +338,58 @@ stateDiagram-v2
 | Address | Not required | - |
 
 > [!CAUTION]
-> Invoices over $50 to Consumidor Final are INVALID per SRI rules.
+> **CRITICAL 2026 RULE**: Invoices over $50 to Consumidor Final are INVALID.
 > System MUST validate and block.
+
+## 9.2 CF Annulment Prohibition (2026)
+
+> [!WARNING]
+> **EFFECTIVE JANUARY 1, 2026**: Per Resolución NAC-DGERCGC25-00000017,
+> invoices emitted to **Consumidor Final CANNOT BE ANNULLED** once transmitted to SRI.
+> This applies to BOTH electronic and physical invoices.
+>
+> If irregularities are detected, ONLY SRI can annul the document "de oficio".
+
+| Scenario | Before Dec 31, 2025 | After Jan 1, 2026 |
+|----------|--------------------|--------------------|
+| CF invoice annulment | ✅ Allowed | ❌ PROHIBITED |
+| Non-CF invoice annulment | ✅ Allowed (day 7) | ✅ Allowed (day 7) |
 
 ---
 
 # 10. ANNULMENT
 
-## 10.1 Deadline (Art. 193 Reglamento LORTI)
+## 10.1 Annulment Rules (2026 Update)
 
-| Rule | Value | Config Key |
-|------|-------|------------|
-| Deadline | Day 7 of next month | `l10n_ec.annulment_day_limit` |
-| Example | Jan invoice → Feb 7 max | - |
+| Document Type | Annulment Allowed | Deadline |
+|---------------|-------------------|-----------|
+| Factura to Consumidor Final | ❌ **PROHIBITED** | N/A |
+| Factura to identified buyer | ✅ Yes | Day 7 next month |
+| Nota de Crédito | ✅ Yes | Day 7 next month |
+| Nota de Débito | ✅ Yes | Day 7 next month |
+| Retención | ✅ Yes | Day 7 next month |
+| Guía de Remisión | ✅ Yes | Day 7 next month |
 
-## 10.2 Process
+## 10.2 Config Keys
+
+| Key | Value | Description |
+|-----|-------|-------------|
+| `l10n_ec.annulment_day_limit` | 7 | Day of month deadline |
+| `l10n_ec.cf_annulment_blocked` | true | Block CF annulment |
+
+## 10.3 Process (Non-CF)
 
 1. User clicks "Anular"
-2. System checks deadline
-3. If valid → Cancel in Odoo + notify SRI
-4. If expired → Block with error message
+2. System checks if Consumidor Final → **BLOCK if CF**
+3. System checks deadline (day 7 of next month)
+4. If valid → Cancel in Odoo + notify SRI
+5. If expired → Block with error message
+
+## 10.4 Process (CF - 2026)
+
+1. User clicks "Anular" on CF invoice
+2. System **BLOCKS** action immediately
+3. Show message: "Las facturas a Consumidor Final no pueden ser anuladas (Res. NAC-DGERCGC25-00000017)"
 
 ---
 
