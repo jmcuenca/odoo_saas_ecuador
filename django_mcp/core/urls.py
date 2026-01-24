@@ -14,12 +14,14 @@ from api.sri import router as sri_router
 from api.products import router as products_router
 from api.auth import router as auth_router
 from api.cart import router as cart_router
+from api.ecuador import router as ecuador_router
 
 api.add_router("/generic", generic_router)
 api.add_router("/sri", sri_router)
 api.add_router("/products", products_router)
 api.add_router("/auth", auth_router)
 api.add_router("/cart", cart_router)
+api.add_router("/ecuador", ecuador_router)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
