@@ -63,7 +63,7 @@ Complete SRI (Servicio de Rentas Internas) integration:
         'python': ['zeep', 'cryptography', 'lxml'],
     },
     'installable': True,
-    'application': True,
+    'application': False,
     'auto_install': False,
     'post_init_hook': 'post_init_hook',
     'uninstall_hook': 'uninstall_hook',
