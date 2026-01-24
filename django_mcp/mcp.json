@@ -1,0 +1,647 @@
+{
+    "name": "odoo-erp-mcp",
+    "version": "1.0.0",
+    "description": "Complete Odoo ERP access via MCP - All modules including Ecuador localization",
+    "server": {
+        "command": "python",
+        "args": [
+            "mcp_server.py"
+        ],
+        "cwd": "${workspaceFolder}/django_mcp"
+    },
+    "tools": [
+        {
+            "name": "odoo_search",
+            "description": "Universal search on any Odoo model. Returns records matching domain filter.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "model": {
+                        "type": "string",
+                        "description": "Odoo model name (e.g., 'res.partner', 'account.move')"
+                    },
+                    "domain": {
+                        "type": "array",
+                        "description": "Odoo domain filter (e.g., [['state', '=', 'posted']])"
+                    },
+                    "fields": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Fields to return"
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "default": 80
+                    },
+                    "offset": {
+                        "type": "integer",
+                        "default": 0
+                    }
+                },
+                "required": [
+                    "model"
+                ]
+            }
+        },
+        {
+            "name": "odoo_create",
+            "description": "Create a record in any Odoo model.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "model": {
+                        "type": "string",
+                        "description": "Odoo model name"
+                    },
+                    "values": {
+                        "type": "object",
+                        "description": "Field values for new record"
+                    }
+                },
+                "required": [
+                    "model",
+                    "values"
+                ]
+            }
+        },
+        {
+            "name": "odoo_write",
+            "description": "Update records in any Odoo model.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "model": {
+                        "type": "string",
+                        "description": "Odoo model name"
+                    },
+                    "ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "description": "Record IDs to update"
+                    },
+                    "values": {
+                        "type": "object",
+                        "description": "Field values to update"
+                    }
+                },
+                "required": [
+                    "model",
+                    "ids",
+                    "values"
+                ]
+            }
+        },
+        {
+            "name": "odoo_delete",
+            "description": "Delete records from any Odoo model.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "model": {
+                        "type": "string",
+                        "description": "Odoo model name"
+                    },
+                    "ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "description": "Record IDs to delete"
+                    }
+                },
+                "required": [
+                    "model",
+                    "ids"
+                ]
+            }
+        },
+        {
+            "name": "odoo_execute",
+            "description": "Execute any method on any Odoo model. Use for button actions, workflows, etc.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "model": {
+                        "type": "string",
+                        "description": "Odoo model name"
+                    },
+                    "method": {
+                        "type": "string",
+                        "description": "Method name to call (e.g., 'action_post', 'action_confirm')"
+                    },
+                    "ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "description": "Record IDs"
+                    },
+                    "args": {
+                        "type": "array",
+                        "description": "Additional positional arguments"
+                    },
+                    "kwargs": {
+                        "type": "object",
+                        "description": "Keyword arguments"
+                    }
+                },
+                "required": [
+                    "model",
+                    "method",
+                    "ids"
+                ]
+            }
+        },
+        {
+            "name": "odoo_inspect",
+            "description": "Get field definitions for any Odoo model. Useful for understanding model structure.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "model": {
+                        "type": "string",
+                        "description": "Odoo model name to inspect"
+                    }
+                },
+                "required": [
+                    "model"
+                ]
+            }
+        },
+        {
+            "name": "sri_sign_invoice",
+            "description": "Sign and send invoice to Ecuador SRI. Generates XML, signs with certificate, sends to SRI.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "invoice_id": {
+                        "type": "integer",
+                        "description": "Invoice ID to sign and send"
+                    }
+                },
+                "required": [
+                    "invoice_id"
+                ]
+            }
+        },
+        {
+            "name": "sri_check_authorization",
+            "description": "Check SRI authorization status for a document.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "invoice_id": {
+                        "type": "integer",
+                        "description": "Invoice ID to check"
+                    }
+                },
+                "required": [
+                    "invoice_id"
+                ]
+            }
+        },
+        {
+            "name": "sri_consult_ruc",
+            "description": "Consult taxpayer info from Ecuador SRI by RUC. Returns business name, address, tax status.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "ruc": {
+                        "type": "string",
+                        "description": "13-digit RUC number"
+                    }
+                },
+                "required": [
+                    "ruc"
+                ]
+            }
+        },
+        {
+            "name": "ecuador_onboarding",
+            "description": "Super simple company onboarding. Enter RUC and auto-load all data from SRI.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "ruc": {
+                        "type": "string",
+                        "description": "Company RUC (13 digits)"
+                    }
+                },
+                "required": [
+                    "ruc"
+                ]
+            }
+        },
+        {
+            "name": "create_invoice",
+            "description": "Create a sales invoice with lines.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "partner_id": {
+                        "type": "integer",
+                        "description": "Customer ID"
+                    },
+                    "lines": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "product_id": {
+                                    "type": "integer"
+                                },
+                                "quantity": {
+                                    "type": "number"
+                                },
+                                "price_unit": {
+                                    "type": "number"
+                                }
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "partner_id",
+                    "lines"
+                ]
+            }
+        },
+        {
+            "name": "post_invoice",
+            "description": "Confirm/post an invoice. Triggers auto-send to SRI if configured.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "invoice_id": {
+                        "type": "integer",
+                        "description": "Invoice ID to post"
+                    }
+                },
+                "required": [
+                    "invoice_id"
+                ]
+            }
+        },
+        {
+            "name": "create_partner",
+            "description": "Create customer/vendor. If RUC provided, auto-loads data from SRI.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "ruc": {
+                        "type": "string",
+                        "description": "RUC (13) or Cedula (10)"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": "string"
+                    },
+                    "is_company": {
+                        "type": "boolean",
+                        "default": true
+                    }
+                }
+            }
+        },
+        {
+            "name": "search_partner",
+            "description": "Search partners by RUC, cedula, or name.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "Search term (RUC, name, or ref)"
+                    }
+                },
+                "required": [
+                    "query"
+                ]
+            }
+        },
+        {
+            "name": "create_withholding",
+            "description": "Create withholding (retención) for vendor bill.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "invoice_id": {
+                        "type": "integer",
+                        "description": "Vendor bill ID"
+                    },
+                    "ir_tax_id": {
+                        "type": "integer",
+                        "description": "IR retention tax ID"
+                    },
+                    "iva_tax_id": {
+                        "type": "integer",
+                        "description": "IVA retention tax ID"
+                    }
+                },
+                "required": [
+                    "invoice_id"
+                ]
+            }
+        },
+        {
+            "name": "get_tax_deadlines",
+            "description": "Get upcoming tax deadlines based on company's 9th RUC digit.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "days_ahead": {
+                        "type": "integer",
+                        "default": 30
+                    }
+                }
+            }
+        },
+        {
+            "name": "create_sale_order",
+            "description": "Create a sales quotation/order.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "partner_id": {
+                        "type": "integer"
+                    },
+                    "lines": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "product_id": {
+                                    "type": "integer"
+                                },
+                                "quantity": {
+                                    "type": "number"
+                                },
+                                "price_unit": {
+                                    "type": "number"
+                                }
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "partner_id",
+                    "lines"
+                ]
+            }
+        },
+        {
+            "name": "confirm_sale_order",
+            "description": "Confirm a sales order.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "order_id": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "order_id"
+                ]
+            }
+        },
+        {
+            "name": "create_purchase_order",
+            "description": "Create a purchase order.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "partner_id": {
+                        "type": "integer",
+                        "description": "Vendor ID"
+                    },
+                    "lines": {
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "partner_id",
+                    "lines"
+                ]
+            }
+        },
+        {
+            "name": "get_stock_levels",
+            "description": "Get stock levels for a product across all locations.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "product_id": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "product_id"
+                ]
+            }
+        },
+        {
+            "name": "validate_picking",
+            "description": "Validate a stock picking (transfer/delivery/receipt).",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "picking_id": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "picking_id"
+                ]
+            }
+        },
+        {
+            "name": "create_payment",
+            "description": "Create a payment (customer or vendor).",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "partner_id": {
+                        "type": "integer"
+                    },
+                    "amount": {
+                        "type": "number"
+                    },
+                    "journal_id": {
+                        "type": "integer",
+                        "description": "Bank/Cash journal ID"
+                    },
+                    "payment_type": {
+                        "type": "string",
+                        "enum": [
+                            "inbound",
+                            "outbound"
+                        ],
+                        "default": "inbound"
+                    }
+                },
+                "required": [
+                    "partner_id",
+                    "amount",
+                    "journal_id"
+                ]
+            }
+        },
+        {
+            "name": "get_employees",
+            "description": "Get list of employees.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {}
+            }
+        },
+        {
+            "name": "create_payslip",
+            "description": "Create Ecuador payslip with IESS calculations.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "employee_id": {
+                        "type": "integer"
+                    },
+                    "date_start": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "date_end": {
+                        "type": "string",
+                        "format": "date"
+                    }
+                },
+                "required": [
+                    "employee_id",
+                    "date_start",
+                    "date_end"
+                ]
+            }
+        },
+        {
+            "name": "get_payroll_rates",
+            "description": "Get current Ecuador payroll rates (SBU, IESS).",
+            "inputSchema": {
+                "type": "object",
+                "properties": {}
+            }
+        },
+        {
+            "name": "create_crm_lead",
+            "description": "Create a CRM lead or opportunity.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "email_from": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": "string"
+                    },
+                    "expected_revenue": {
+                        "type": "number"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            }
+        },
+        {
+            "name": "create_project_task",
+            "description": "Create a project task.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "project_id": {
+                        "type": "integer"
+                    },
+                    "user_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "date_deadline": {
+                        "type": "string",
+                        "format": "date"
+                    }
+                },
+                "required": [
+                    "name",
+                    "project_id"
+                ]
+            }
+        },
+        {
+            "name": "log_timesheet",
+            "description": "Log timesheet entry for a project task.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "project_id": {
+                        "type": "integer"
+                    },
+                    "task_id": {
+                        "type": "integer"
+                    },
+                    "hours": {
+                        "type": "number"
+                    },
+                    "description": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "project_id",
+                    "task_id",
+                    "hours",
+                    "description"
+                ]
+            }
+        },
+        {
+            "name": "get_config",
+            "description": "Get all Ecuador configuration parameters.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {}
+            }
+        },
+        {
+            "name": "set_config",
+            "description": "Set a configuration parameter.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "key",
+                    "value"
+                ]
+            }
+        }
+    ]
+}
