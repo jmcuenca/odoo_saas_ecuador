@@ -57,7 +57,7 @@
 
         <record id="l10n_ec_iess_aporte_patronal" model="ir.config_parameter">
             <field name="key">l10n_ec.iess_aporte_patronal</field>
-            <field name="value">12.15</field>
+            <field name="value">11.15</field>
         </record>
 
         <!-- ================================================================

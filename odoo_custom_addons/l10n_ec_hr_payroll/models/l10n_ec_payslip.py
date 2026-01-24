@@ -31,7 +31,7 @@ class L10nEcPayslip(models.Model):
     advances = fields.Float("Salary Advances")
 
     # Employer Costs
-    iess_employer = fields.Float("IESS Patronal (12.15%)", compute='_compute_iess', store=True)
+    iess_employer = fields.Float("IESS Patronal (11.15%)", compute='_compute_iess', store=True)
 
     # Benefits (Provisions)
     thirteenth = fields.Float("13th Salary", compute='_compute_benefits', store=True)
@@ -76,7 +76,7 @@ class L10nEcPayslip(models.Model):
 
         # Get IESS rates from config (configurable, not hardcoded)
         iess_personal_rate = float(ICP.get_param('l10n_ec.iess_aporte_personal', '9.45')) / 100
-        iess_employer_rate = float(ICP.get_param('l10n_ec.iess_aporte_patronal', '12.15')) / 100
+        iess_employer_rate = float(ICP.get_param('l10n_ec.iess_aporte_patronal', '11.15')) / 100
 
         for rec in self:
             # IESS Personal contribution
