@@ -4,7 +4,7 @@ test.describe('SRI Electronic Invoicing Flow', () => {
 
     test.beforeEach(async ({ page }) => {
         // 1. Login
-        await page.goto('/web/login');
+        await page.goto('/web/login?db=odoo');
         await page.fill('input[name="login"]', 'admin');
         await page.fill('input[name="password"]', 'admin');
         await page.click('button[type="submit"]');

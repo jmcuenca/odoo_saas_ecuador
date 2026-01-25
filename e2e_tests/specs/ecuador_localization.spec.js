@@ -62,7 +62,8 @@ const TEST_PRODUCT = {
 // ============================================================================
 
 async function login(page) {
-    await page.goto(ODOO_URL);
+    // Navigate directly to login with database selected
+    await page.goto(`${ODOO_URL}/web/login?db=odoo`);
     await page.waitForLoadState('networkidle');
 
     // Check if already logged in
@@ -70,8 +71,22 @@ async function login(page) {
         return;
     }
 
-    // Wait for login page
-    await page.waitForSelector('input[name="login"]', { timeout: 30000 });
+    // Check if database selector is shown (Odoo 18 shows both but login hidden)
+    const dbList = page.locator('.o_database_list');
+    if (await dbList.isVisible({ timeout: 3000 }).catch(() => false)) {
+        // Database selector is shown - click on 'odoo' database if available
+        const dbLink = page.locator('a:has-text("odoo"), button:has-text("odoo")').first();
+        if (await dbLink.isVisible({ timeout: 2000 }).catch(() => false)) {
+            await dbLink.click();
+            await page.waitForLoadState('networkidle');
+        } else {
+            // No database link found - might need to create or configure
+            throw new Error('Database "odoo" not found in database selector. Please configure Odoo with the default database.');
+        }
+    }
+
+    // Wait for login page inputs to become visible
+    await page.waitForSelector('input[name="login"]:visible', { timeout: 30000 });
 
     await page.fill('input[name="login"]', ADMIN_USER);
     await page.fill('input[name="password"]', ADMIN_PASS);
