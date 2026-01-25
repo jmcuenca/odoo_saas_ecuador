@@ -213,13 +213,17 @@ def handle_tax_deadlines(args: Dict) -> Any:
 
 
 def handle_payroll_rates(args: Dict) -> Dict:
-    def get_param(key, default):
-        return odoo.execute_kw('ir.config_parameter', 'get_param', [key]) or default
+    """Get payroll rates from Odoo config - NO HARDCODED FALLBACKS."""
+    def get_param_required(key):
+        value = odoo.execute_kw('ir.config_parameter', 'get_param', [key])
+        if not value:
+            raise ValueError(f"Missing required config: {key}. Install l10n_ec modules properly.")
+        return value
 
     return {
-        "sbu": float(get_param('l10n_ec.sbu', '482')),
-        "iess_personal": float(get_param('l10n_ec.iess_aporte_personal', '9.45')),
-        "iess_employer": float(get_param('l10n_ec.iess_aporte_patronal', '12.15')),
+        "sbu": float(get_param_required('l10n_ec.sbu')),
+        "iess_personal": float(get_param_required('l10n_ec.iess_aporte_personal')),
+        "iess_employer": float(get_param_required('l10n_ec.iess_aporte_patronal')),
     }
 
 

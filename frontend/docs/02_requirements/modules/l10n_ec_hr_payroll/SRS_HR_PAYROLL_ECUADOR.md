@@ -856,3 +856,26 @@ All reports follow MDT/SRI official formats where applicable.
 | Reviewer | Legal | - | - |
 | Approver | PM | - | - |
 
+
+# 13. COMPETITIVE SUPERIORITY REQUIREMENTS (SRS-10)
+> **Goal**: Surpass market standard (PacERP) via Native Odoo Features.
+
+## 13.1 Employee Self-Service Portal (SRS-10-PORTAL)
+**Objective**: Eliminate HR bottlenecks for document retrieval.
+
+| Requirement | Description | User Story |
+|-------------|-------------|------------|
+| **PDF Download** | Employees must be able to download their signed "Rol de Pagos" PDF. | "As Juan, I want to download my Jan slip to apply for a loan." |
+| **Loan Balance** | Employees can view real-time balance of Company/IESS loans. | "As Maria, I want to see how much I still owe." |
+| **Mobile Native** | Interface must be fully responsive (Phone/Tablet). | "I want to check payroll on the bus." |
+
+## 13.2 Automated Attendance & Overtime (SRS-10-ATTEND)
+**Objective**: Eliminate manual data entry errors in Overtime.
+
+| Requirement | Description | Logic |
+|-------------|-------------|-------|
+| **Biometric Sync** | Integrate with `hr_attendance` (FaceID/Kiosk). | Check-In/Out timestamps act as source of truth. |
+| **Auto-Calculation** | System auto-computes 50% vs 100% hours based on shifts. | `Hours = Checkout - Checkin`. Match against `Shift`. Excess = OT. |
+| **Approval Flow** | Manager approves "Calculated OT" before Payroll linkage. | Prevent unauthorized overtime payment. |
+
+---

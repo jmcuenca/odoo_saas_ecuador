@@ -230,12 +230,17 @@ def create_payslip(request, payload: PayslipSchema):
 
 @router.get("/payroll/rates")
 def get_payroll_rates(request):
-    """Get current IESS and SBU rates from config."""
-    ICP = lambda k, d: odoo.execute_kw('ir.config_parameter', 'get_param', [k]) or d
+    """Get current IESS and SBU rates from config - NO HARDCODED FALLBACKS."""
+    def get_required(key):
+        value = odoo.execute_kw('ir.config_parameter', 'get_param', [key])
+        if not value:
+            raise ValueError(f"Missing required config: {key}. Install l10n_ec modules properly.")
+        return value
+
     return {
-        "sbu": float(ICP('l10n_ec.sbu', '482')),
-        "iess_personal": float(ICP('l10n_ec.iess_aporte_personal', '9.45')),
-        "iess_employer": float(ICP('l10n_ec.iess_aporte_patronal', '12.15')),
+        "sbu": float(get_required('l10n_ec.sbu')),
+        "iess_personal": float(get_required('l10n_ec.iess_aporte_personal')),
+        "iess_employer": float(get_required('l10n_ec.iess_aporte_patronal')),
     }
 
 
@@ -280,11 +285,16 @@ def create_dau(request, payload: DauSchema):
 
 @router.get("/customs/rates")
 def get_customs_rates(request):
-    """Get FODINFA and customs IVA rates."""
-    ICP = lambda k, d: odoo.execute_kw('ir.config_parameter', 'get_param', [k]) or d
+    """Get FODINFA and customs IVA rates - NO HARDCODED FALLBACKS."""
+    def get_required(key):
+        value = odoo.execute_kw('ir.config_parameter', 'get_param', [key])
+        if not value:
+            raise ValueError(f"Missing required config: {key}. Install l10n_ec modules properly.")
+        return value
+
     return {
-        "fodinfa": float(ICP('l10n_ec.fodinfa', '0.005')),
-        "customs_iva": float(ICP('l10n_ec.customs_iva', '0.15')),
+        "fodinfa": float(get_required('l10n_ec.fodinfa')),
+        "customs_iva": float(get_required('l10n_ec.customs_iva')),
     }
 
 

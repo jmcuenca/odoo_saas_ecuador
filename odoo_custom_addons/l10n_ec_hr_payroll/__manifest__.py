@@ -17,7 +17,7 @@ Complete payroll management for Ecuador (SBU 2026: $482):
 
 * IESS Contributions
   - Personal: 9.45%
-  - Patronal: 12.15% (including SECAP 0.5%, IECE 0.5%)
+  - Patronal: 11.15% (base IESS) + SECAP 0.5% + IECE 0.5% = 12.15% total
 * Décimo Tercero (13th Salary) - Due December 24
 * Décimo Cuarto (14th Salary)
   - Costa/Galápagos: March 15
@@ -32,7 +32,7 @@ Complete payroll management for Ecuador (SBU 2026: $482):
     'author': 'Somatech.dev, Odoo Community Association (OCA)',
     'website': 'https://github.com/somatechlat/odoo_saas_ecuador',
     'license': 'LGPL-3',
-    'depends': ['hr', 'hr_contract'],
+    'depends': ['hr', 'hr_contract', 'hr_attendance'],
     'data': [
         'security/ir.model.access.csv',
         'data/l10n_ec_salary_rule_data.xml',
