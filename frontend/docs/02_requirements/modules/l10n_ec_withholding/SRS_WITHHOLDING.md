@@ -62,17 +62,18 @@ This SRS defines requirements for the **Ecuador Withholding Module** (l10n_ec_wi
 | Export companies | Service purchases |
 | Credit card issuers | Card transactions |
 
-## 2.3 Emission Deadline (Art. 193 Reglamento LORTI)
+## 2.3 Emission & Cancellation Rules (2026)
 
-| Rule | Timeline |
-|------|----------|
-| **Emission** | At payment or credit time |
-| **Maximum delay** | 5 business days from payment |
-| **Annulment** | Day 7 of next month |
+| Rule | Timeline | Implemented In |
+|------|----------|----------------|
+| **Emission** | Immediate (Real-time) | `account.retention.create` |
+| **Cancellation** | Up to Day 7 of next month | `account.retention._check_cancellation_allowed` |
+| **Old 5-Day Rule** | **ABOLISHED** | Removed from code |
 
-> [!WARNING]
-> **2026 UPDATE**: Per SRI 2026 rules, the 5-day rule for retention
-> emission is interpreted from DATE OF PAYMENT, not invoice date.
+> [!IMPORTANT]
+> **CODE AS TRUTH**:
+> The logic in `account_retention.py` enforces the 7-day cancellation limit (Resolution NAC-DGERCGC25-00000017).
+> The legacy 5-day emission deadline valid in 2024 is NO LONGER ENFORCED by the software.
 
 ---
 
@@ -117,18 +118,6 @@ This SRS defines requirements for the **Ecuador Withholding Module** (l10n_ec_wi
 
 ## 3.2 IVA Retention (Retención IVA)
 
-### 3.2.1 Table 21 - IVA Retention Codes
-
-| Code | Concept | Rate |
-|------|---------|------|
-| **1** | 10% IVA (Bienes) | 10% |
-| **2** | 20% IVA (Servicios) | 20% |
-| **3** | 30% IVA (Bienes) | 30% |
-| **4** | 50% IVA | 50% |
-| **5** | 70% IVA | 70% |
-| **6** | 100% IVA | 100% |
-| **7** | 100% IVA Convenio/Ley | 100% |
-| **8** | Retención IVA CF | - |
 | **9** | No procede | 0% |
 
 ### 3.2.2 IVA Retention Matrix

@@ -64,7 +64,59 @@ class L10nEcPayslip(models.Model):
             supp_pay = rec.supplementary_hours * supp_rate
 
             rec.total_income = rec.wage + ot_pay + supp_pay + rec.commission + rec.bonus
+            # Income Tax Calculation (SRI 2026 Progressive)
+            rec.income_tax = rec._compute_income_tax_2026(rec.total_income, rec.iess_personal)
+
             rec.net_wage = (rec.total_income + rec.total_benefits_cash) - rec.iess_personal - rec.income_tax - rec.advances
+
+    def _compute_income_tax_2026(self, monthly_income, monthly_iess):
+        """
+        Implementation of Resolution NAC-DGERCGC25-00000043.
+        1. Project Annual Income (Income * 12).
+        2. Deduct IESS Personal (Income * 0.0945 * 12).
+        3. Determine Tax Base.
+        4. Calculate Impuesto Causado (Progressive Table).
+        5. Calculate Rebaja Tributaria (Family Loads).
+        6. Result: Annual Tax / 12.
+        """
+        # A. Projection
+        # Note: Decimals and Reserve Funds are EXEMPT from Income Tax.
+        annual_gross = monthly_income * 12.0
+        annual_deductible_iess = monthly_iess * 12.0
+
+        taxable_base = max(0.0, annual_gross - annual_deductible_iess)
+
+        # B. Impuesto Causado
+        # Get tax from l10n_ec.tax.table
+        tax_table = self.env['l10n_ec.tax.table']
+        annual_caused_tax = tax_table.get_tax_for_base(taxable_base, year=2026)
+
+        # If no tax caused, return 0 early
+        if annual_caused_tax <= 0:
+            return 0.0
+
+        # C. Rebaja Tributaria (Tax Credit)
+        # Needs Employee Family Loads and Contract Projected Expenses
+        basket_model = self.env['l10n_ec.family.basket']
+
+        # Get Projected Expenses from Contract
+        projected_expenses = 0.0
+        if self.contract_id:
+            projected_expenses = self.contract_id.l10n_ec_projected_expenses
+
+        # Get Family Loads from Employee
+        loads = 0
+        catastrophic_disease = False
+        if self.employee_id:
+            loads = self.employee_id.l10n_ec_family_loads
+            catastrophic_disease = self.employee_id.l10n_ec_catastrophic_disease
+
+        rebate = basket_model.calculate_rebate(projected_expenses, loads, catastrophic_disease, year=2026)
+
+        # D. Final Tax
+        final_annual_tax = max(0.0, annual_caused_tax - rebate)
+
+        return final_annual_tax / 12.0
 
     @api.depends('total_income')
     def _compute_iess(self):
@@ -133,7 +185,35 @@ class L10nEcPayslip(models.Model):
 
             rec.total_benefits_cash = cash_total
 
+    @api.constrains('overtime_hours', 'supplementary_hours')
+    def _check_overtime_limits(self):
+        """
+        Enforce Código de Trabajo Art. 55:
+        - Max 4 hours per day (Cannot check without daily logs).
+        - Max 12 hours per week.
+
+        Since this is a monthly/period payslip, we check the weekly limit * 4 weeks.
+        Limit: 12 * 4 = 48 hours per month (approx).
+
+        Strict compliance would require daily timesheets, but we enforce the monthly cap here.
+        """
+        for rec in self:
+            total_ot = rec.overtime_hours + rec.supplementary_hours
+            # Rough approximation: 4 weeks per month.
+            # 12 hours * 4 weeks = 48 hours max per month.
+            # This is a safe upper bound to prevent illegal exploitation.
+            if total_ot > 48.0:
+                 from odoo.exceptions import ValidationError
+                 raise ValidationError(
+                     "Legal Overtime Limit Exceeded (Art. 55 Código de Trabajo).\n\n"
+                     "The maximum overtime allowed is 12 hours per week.\n"
+                     "Accumulated Monthly Limit (approx): 48 hours.\n"
+                     f"Current Total: {total_ot} hours.\n\n"
+                     "Please reduce the overtime hours."
+                 )
+
     def action_confirm(self):
+        self._check_overtime_limits()
         self.write({'state': 'done'})
 
     @api.model

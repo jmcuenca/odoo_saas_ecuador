@@ -37,6 +37,7 @@ Complete payroll management for Ecuador (SBU 2026: $482):
         'security/ir.model.access.csv',
         'data/l10n_ec_salary_rule_data.xml',
         'data/l10n_ec_payroll_data.xml',
+        'report/form_107_template.xml',
         'views/hr_contract_views.xml',
         'views/l10n_ec_payslip_views.xml',
     ],

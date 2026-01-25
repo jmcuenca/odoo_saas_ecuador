@@ -9,6 +9,8 @@ class AccountMove(models.Model):
     """
     Extends account.move with SRI integration logic.
     Field definitions inherited from l10n_ec_edi.
+
+    Note: 2026 Consumidor Final validations are handled by l10n_ec_edi module.
     """
     _inherit = 'account.move'
 

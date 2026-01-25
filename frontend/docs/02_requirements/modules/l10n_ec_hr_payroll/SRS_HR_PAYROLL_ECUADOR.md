@@ -91,11 +91,103 @@ This Software Requirements Specification (SRS) defines all requirements for the 
 > All values below are stored in `ir.config_parameter`.
 > Code MUST retrieve these dynamically. NO HARDCODING.
 
-### 2.2.1 Salario Básico Unificado (SBU)
+## 1.3 Key Legal Parameters (2026)
 
-| Parameter | Value | Key |
-|-----------|-------|-----|
-| SBU 2026 | $482.00 USD | `l10n_ec.sbu` |
+| Parameter | Value | Legal Basis |
+|-----------|-------|-------------|
+| **SBU 2026** | $482.00 | MDT Acuerdo 2025 |
+| **IESS Personal** | 9.45% | Ley Seg. Social |
+| **IESS Patronal** | 11.15% | Ley Seg. Social |
+| **Salario Digno** | Calculated | Art. 95 CT |
+| **Fondos Reserva** | 8.33% | Art. 196 CT |
+| **Decimo 3ro** | 1/12 Earnings | Art. 111 CT |
+| **Decimo 4to** | $482.00 | Art. 113 CT |
+| **Recargo Nocturn**| 25% | Art. 55 CT |
+| **Hora Suppl** | 50% | Art. 55 CT |
+| **Hora Extra** | 100% | Art. 55 CT |
+| **Utilidades** | 15% Net Income | Art. 97 CT |
+
+---
+
+# 2. DATA MODELS
+
+## 2.1 Employee Extension (`hr.employee`)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `l10n_ec_decimo13_accumulate` | Boolean | True = Receive in Dec; False = Monthly |
+| `l10n_ec_decimo14_accumulate` | Boolean | True = Receive in Mar/Aug; False = Monthly |
+| `l10n_ec_funds_reserve_accumulate` | Boolean | True = IESS; False = Monthly |
+| `l10n_ec_disability_id` | Many2one | CONADIS Card info |
+| `l10n_ec_dependents` | Integer | For Utility calculation (cargas) |
+| `l10n_ec_region_id` | Selection | `costa`, `sierra` (For Dec 14th) |
+| `l10n_ec_impuesto_renta_projection` | Float | Proyeccion Gastos Personales |
+
+---
+
+# 3. FUNCTIONAL LOGIC
+
+## 3.1 Overtime & Shifts (Art. 55) (REVISED)
+System MUST calculate strictly based on shift timestamps:
+- **Jornada Ordinaria**: Max 8h/day, 40h/week.
+- **Recargo Nocturno (25%)**: Work between 19:00 - 06:00 (within 8h).
+- **Suplementaria (50%)**: >8h on weekdays (Max 4h/day, 12h/week).
+- **Extraordinaria (100%)**: Work on Sat/Sun/Holidays OR >24:00.
+
+**Algorithm:**
+1. Check Global Leave/Public Holidays.
+2. Check Employee Schedule.
+3. Compare Attendance In/Out.
+4. Split hours into buckets (Normal, Night, Supp, Extra).
+5. Apply rates to `contract.wage / 240` (hourly rate).
+
+## 3.2 Utilidades (Profit Sharing - Art. 97)
+**Deadline**: April 15th.
+ **Calculation:**
+1. **10% (Employees)**: `(Net Income * 0.10) / Total Days Worked by All`.
+   - Distribute based on individual days worked.
+2. **5% (Cargas)**: `(Net Income * 0.05) / Total Factor A`.
+   - Factor A = Days Worked * Number of Dependents.
+   - Distribute based on individual Factor A.
+
+## 3.3 Reserve Funds (Fondos de Reserva - Art. 196)
+- **Eligibility**: From Month 13 of continuous work.
+- **Rate**: 8.33% of *Remuneración de Aportación* (Base + Overtime + Commissions).
+- **Payment**: IESS (Accumulated) or Monthly Roll.
+
+## 3.4 Decimos (13th & 14th)
+- **13th (Bono Navideño)**:
+  - Period: Dec 1 - Nov 30.
+  - Base: Sum of ALL taxable income / 12.
+- **14th (Bono Escolar)**:
+  - Period: Mar 1 - Feb 28 (Costa) / Aug 1 - Jul 31 (Sierra).
+  - Base: 1 SBU ($482) / 360 * Days Worked.
+
+## 3.5 Jubilación Patronal (Actuarial - Art. 216)
+> [!NOTE]
+> Odoo stores the *provision*, not the actuarial calculation itself.
+- **Requirements**:
+  - Track "Years of Service" accurately.
+  - On 20+ years, trigger alert for provision review.
+  - On termination (despido > 20y), trigger calculation wizard.
+
+---
+
+# 4. REPORTING REQUIREMENTS
+
+## 4.1 RDEP (Relación de Dependencia)
+XML Report for SRI (Annex).
+- Must group income by type (Sueldo, Sobresueldo, Utilidades).
+- Apply Gastos Personales deduction.
+- Report "Impuesto Renta Asumido" if applicable.
+
+## 4.2 IESS Planillas
+- Generate .txt file for IESS upload.
+- Updates status (Avisos de Entrada/Salida).
+
+## 4.3 Formulario 107
+- Printable withholding certificate for employees.
+- Maps RDEP fields to PDF layout.
 
 ### 2.2.2 IESS Contribution Rates
 

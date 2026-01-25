@@ -374,7 +374,6 @@ stateDiagram-v2
 
 | Key | Value | Description |
 |-----|-------|-------------|
-| `l10n_ec.annulment_day_limit` | 7 | Day of month deadline |
 | `l10n_ec.cf_annulment_blocked` | true | Block CF annulment |
 
 ## 10.3 Process (Non-CF)
@@ -424,8 +423,10 @@ graph TD
 | `l10n_ec.sri_environment` | test/production | test |
 | `l10n_ec.consumidor_final_ruc` | CF RUC | 9999999999999 |
 | `l10n_ec.consumidor_final_limit` | CF max amount | 50.00 |
-| `l10n_ec.annulment_day_limit` | Annulment deadline | 7 |
 | `l10n_ec.auto_send_on_post` | Auto-send invoices | true |
+
+> [!NOTE]
+> **CODE TRUTH**: The 7-day annulment deadline is hardcoded in `_check_cancellation_allowed` methods per Regulation NAC-DGERCGC25-00000017.
 
 ## 12.2 Company Configuration
 
