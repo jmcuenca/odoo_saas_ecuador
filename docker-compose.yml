@@ -18,8 +18,9 @@ services:
       - USER=odoo
       - PASSWORD=odoo
     restart: always
-    # AUTO-INSTALL: All Ecuador modules pre-installed. User just starts and uses.
-    command: -c /etc/odoo/odoo.conf -d odoo -i l10n_ec --without-demo=all
+    # AUTO-INSTALL: All Ecuador modules + base business modules pre-installed
+    # Spanish Ecuador language loaded, demo data included for CANNACHAIN S.A.S.
+    command: -c /etc/odoo/odoo.conf -d odoo -i l10n_ec --load-language=es_EC
     deploy:
       resources:
         limits:

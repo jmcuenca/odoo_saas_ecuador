@@ -32,7 +32,7 @@ Complete payroll management for Ecuador (SBU 2026: $482):
     'author': 'Somatech.dev, Odoo Community Association (OCA)',
     'website': 'https://github.com/somatechlat/odoo_saas_ecuador',
     'license': 'LGPL-3',
-    'depends': ['hr', 'hr_contract', 'hr_attendance'],
+    'depends': ['hr', 'hr_contract'],
     'data': [
         'security/ir.model.access.csv',
         'data/l10n_ec_salary_rule_data.xml',

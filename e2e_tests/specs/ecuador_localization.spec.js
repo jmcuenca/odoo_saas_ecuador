@@ -62,36 +62,37 @@ const TEST_PRODUCT = {
 // ============================================================================
 
 async function login(page) {
-    // Navigate directly to login with database selected
-    await page.goto(`${ODOO_URL}/web/login?db=odoo`);
+    // Step 1: Go to database selector page first
+    await page.goto(`${ODOO_URL}/web/database/selector`);
     await page.waitForLoadState('networkidle');
 
-    // Check if already logged in
-    if (await page.locator('.o_main_navbar').isVisible()) {
-        return;
+    // Step 2: Check if we're already logged in (redirected to main view)
+    if (await page.locator('.o_main_navbar').isVisible({ timeout: 2000 }).catch(() => false)) {
+        return; // Already logged in
     }
 
-    // Check if database selector is shown (Odoo 18 shows both but login hidden)
+    // Step 3: Handle database selector if shown
     const dbList = page.locator('.o_database_list');
     if (await dbList.isVisible({ timeout: 3000 }).catch(() => false)) {
-        // Database selector is shown - click on 'odoo' database if available
-        const dbLink = page.locator('a:has-text("odoo"), button:has-text("odoo")').first();
+        // Click on 'odoo' database link - Odoo 18 format: <a href="/odoo?db=odoo">odoo</a>
+        const dbLink = page.locator('a[href*="db=odoo"]').first();
         if (await dbLink.isVisible({ timeout: 2000 }).catch(() => false)) {
             await dbLink.click();
             await page.waitForLoadState('networkidle');
         } else {
-            // No database link found - might need to create or configure
-            throw new Error('Database "odoo" not found in database selector. Please configure Odoo with the default database.');
+            throw new Error('Database "odoo" not found. Please configure Odoo with database "odoo".');
         }
     }
 
-    // Wait for login page inputs to become visible
-    await page.waitForSelector('input[name="login"]:visible', { timeout: 30000 });
+    // Step 4: Now we should be on login page - wait for it
+    await page.waitForSelector('input[name="login"]', { state: 'visible', timeout: 30000 });
 
+    // Step 5: Fill login form
     await page.fill('input[name="login"]', ADMIN_USER);
     await page.fill('input[name="password"]', ADMIN_PASS);
     await page.click('button[type="submit"]');
 
+    // Step 6: Wait for main navbar (logged in)
     await page.waitForSelector('.o_main_navbar', { timeout: 30000 });
 }
 
