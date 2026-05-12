@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extiende el form de res.company para mostrar campos SRI Ecuador -->
+    <record id="view_res_company_form_l10n_ec_edi" model="ir.ui.view">
+        <field name="name">res.company.form.l10n_ec_edi</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <!-- Agrega un notebook con una pagina para Ecuador SRI -->
+            <xpath expr="//sheet" position="inside">
+                <notebook>
+                    <page string="SRI Ecuador" name="l10n_ec_sri" groups="account.group_account_manager">
+                        <group>
+                            <group string="Configuracion General">
+                                <field name="l10n_ec_commercial_name"/>
+                                <field name="l10n_ec_special_resolution"/>
+                                <field name="l10n_ec_forced_accounting"/>
+                            </group>
+                            <group string="Firma Electronica">
+                                <field name="l10n_ec_certificate_id"/>
+                                <field name="l10n_ec_sri_environment"/>
+                            </group>
+                        </group>
+                        <group string="URLs Web Service SRI">
+                            <field name="l10n_ec_sri_reception_url" placeholder="https://celcer.sri.gob.ec/.../RecepcionComprobantesOffline?wsdl"/>
+                            <field name="l10n_ec_sri_authorization_url" placeholder="https://celcer.sri.gob.ec/.../AutorizacionComprobantesOffline?wsdl"/>
+                        </group>
+                        <group string="Retencion">
+                            <group>
+                                <field name="l10n_ec_withhold_agent"/>
+                                <field name="l10n_ec_withhold_resolution" attrs="{'invisible': [('l10n_ec_withhold_agent', '=', False)]}"/>
+                            </group>
+                        </group>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+</odoo>
