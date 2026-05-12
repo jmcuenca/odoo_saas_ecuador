@@ -6,7 +6,7 @@
 
 {
     "name": "Ecuador SRI Electronic Invoicing",
-    "version": "18.0.1.0.0",
+    "version": "19.0.1.0.0",
     "category": "Accounting/Localizations/SRI",
     "summary": "Full SRI Electronic Invoicing Compliance (2025-2026)",
     "description": """

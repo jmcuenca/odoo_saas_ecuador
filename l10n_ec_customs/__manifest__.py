@@ -6,7 +6,7 @@
 
 {
     "name": "Ecuador - Customs (Imports/Exports)",
-    "version": "18.0.1.0.0",
+    "version": "19.0.1.0.0",
     "category": "Operations/Customs",
     "summary": "DAU, Tariff Codes, FODINFA, Import IVA",
     "description": """
