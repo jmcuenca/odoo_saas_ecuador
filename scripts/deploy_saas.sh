@@ -22,9 +22,8 @@ require_root() {
 
 pull_repo() {
   log "git pull en ${SAAS_DIR}"
-  git -C "${SAAS_DIR}" fetch origin 19.0
-  git -C "${SAAS_DIR}" reset --hard origin/19.0
-  chown -R "${ODOO_USER}:${ODOO_USER}" "${SAAS_DIR}"
+  sudo -u "${ODOO_USER}" git -C "${SAAS_DIR}" fetch origin 19.0
+  sudo -u "${ODOO_USER}" git -C "${SAAS_DIR}" reset --hard origin/19.0
 }
 
 detect_db() {
