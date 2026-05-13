@@ -19,9 +19,17 @@
         <fechaEmision><t t-esc="record.invoice_date.strftime('%d/%m/%Y')"/></fechaEmision>
         <dirEstablecimiento><t t-esc="record.company_id.street"/></dirEstablecimiento>
         <obligadoContabilidad><t t-if="record.company_id.l10n_ec_forced_accounting">SI</t><t t-else="">NO</t></obligadoContabilidad>
-        <tipoIdentificacionComprador>05</tipoIdentificacionComprador>
+        <tipoIdentificacionComprador><t t-esc="
+            '07' if not record.partner_id.vat or record.partner_id.vat in ('9999999999999', 'CF', 'consumidor final')
+            else '04' if len(record.partner_id.vat) == 13
+            else '05' if len(record.partner_id.vat) == 10
+            else '06'
+        "/></tipoIdentificacionComprador>
         <razonSocialComprador><t t-esc="record.partner_id.name"/></razonSocialComprador>
-        <identificacionComprador><t t-esc="record.partner_id.vat"/></identificacionComprador>
+        <identificacionComprador><t t-esc="
+            '9999999999999' if not record.partner_id.vat or record.partner_id.vat in ('9999999999999', 'CF', 'consumidor final')
+            else record.partner_id.vat
+        "/></identificacionComprador>
         <totalSinImpuestos><t t-esc="'{:.2f}'.format(record.amount_untaxed)"/></totalSinImpuestos>
         <totalDescuento>0.00</totalDescuento>
         <totalConImpuestos>
