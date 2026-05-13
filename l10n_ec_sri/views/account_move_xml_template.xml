@@ -25,7 +25,14 @@
         <totalSinImpuestos><t t-esc="'{:.2f}'.format(record.amount_untaxed)"/></totalSinImpuestos>
         <totalDescuento>0.00</totalDescuento>
         <totalConImpuestos>
-             <!-- Loop Taxes -->
+            <t t-foreach="sri_totals" t-as="tot">
+                <totalImpuesto>
+                    <codigo><t t-esc="tot['codigo']"/></codigo>
+                    <codigoPorcentaje><t t-esc="tot['codigoPorcentaje']"/></codigoPorcentaje>
+                    <baseImponible><t t-esc="tot['baseImponible']"/></baseImponible>
+                    <valor><t t-esc="tot['valor']"/></valor>
+                </totalImpuesto>
+            </t>
         </totalConImpuestos>
         <propina>0.00</propina>
         <importeTotal><t t-esc="'{:.2f}'.format(record.amount_total)"/></importeTotal>
@@ -40,7 +47,15 @@
             <descuento>0.00</descuento>
             <precioTotalSinImpuesto><t t-esc="line.price_subtotal"/></precioTotalSinImpuesto>
             <impuestos>
-                 <!-- Tax Logic -->
+                <t t-foreach="sri_line_taxes.get(line.id, [])" t-as="imp">
+                    <impuesto>
+                        <codigo><t t-esc="imp['codigo']"/></codigo>
+                        <codigoPorcentaje><t t-esc="imp['codigoPorcentaje']"/></codigoPorcentaje>
+                        <tarifa><t t-esc="imp['tarifa']"/></tarifa>
+                        <baseImponible><t t-esc="imp['baseImponible']"/></baseImponible>
+                        <valor><t t-esc="imp['valor']"/></valor>
+                    </impuesto>
+                </t>
             </impuestos>
         </detalle>
     </detalles>
