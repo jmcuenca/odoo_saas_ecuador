@@ -116,18 +116,32 @@ class L10nEcSriXml(models.AbstractModel):
             if 'isd' in group: return 'isd'
             return 'iva'
 
-        # Aggregate tax lines for totalConImpuestos
+        # Aggregate totals from invoice lines (avoids journal entry structure dependency)
         totals = {}
-        for tline in record.line_ids.filtered(lambda l: l.tax_line_id):
-            tax = tline.tax_line_id
-            codigo = TYPE_CODIGO.get(get_tipo(tax), '2')
-            cod_pct = get_porcentaje_code(tax)
-            key = (codigo, cod_pct)
-            if key not in totals:
-                totals[key] = {'codigo': codigo, 'codigoPorcentaje': cod_pct,
-                               'baseImponible': 0.0, 'valor': 0.0}
-            totals[key]['baseImponible'] += abs(tline.tax_base_amount)
-            totals[key]['valor'] += abs(tline.balance)
+        sri_line_taxes = {}
+        for line in record.invoice_line_ids:
+            base = abs(line.price_subtotal)
+            line_taxes = []
+            for tax in line.tax_ids:
+                codigo = TYPE_CODIGO.get(get_tipo(tax), '2')
+                cod_pct = get_porcentaje_code(tax)
+                valor = base * (tax.amount / 100.0)
+                # accumulate for totalConImpuestos
+                key = (codigo, cod_pct)
+                if key not in totals:
+                    totals[key] = {'codigo': codigo, 'codigoPorcentaje': cod_pct,
+                                   'baseImponible': 0.0, 'valor': 0.0}
+                totals[key]['baseImponible'] += base
+                totals[key]['valor'] += valor
+                # per-line entry
+                line_taxes.append({
+                    'codigo': codigo,
+                    'codigoPorcentaje': cod_pct,
+                    'tarifa': '%.2f' % tax.amount,
+                    'baseImponible': '%.2f' % base,
+                    'valor': '%.2f' % valor,
+                })
+            sri_line_taxes[line.id] = line_taxes
 
         sri_totals = [
             {'codigo': v['codigo'], 'codigoPorcentaje': v['codigoPorcentaje'],
@@ -135,24 +149,6 @@ class L10nEcSriXml(models.AbstractModel):
              'valor': '%.2f' % v['valor']}
             for v in totals.values()
         ]
-
-        # Per-line taxes for <impuestos> inside each <detalle>
-        sri_line_taxes = {}
-        for line in record.invoice_line_ids:
-            taxes = []
-            for tax in line.tax_ids:
-                codigo = TYPE_CODIGO.get(get_tipo(tax), '2')
-                cod_pct = get_porcentaje_code(tax)
-                base = abs(line.price_subtotal)
-                valor = base * (tax.amount / 100.0)
-                taxes.append({
-                    'codigo': codigo,
-                    'codigoPorcentaje': cod_pct,
-                    'tarifa': '%.2f' % tax.amount,
-                    'baseImponible': '%.2f' % base,
-                    'valor': '%.2f' % valor,
-                })
-            sri_line_taxes[line.id] = taxes
 
         return sri_totals, sri_line_taxes
 
