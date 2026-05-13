@@ -118,9 +118,7 @@ class L10nEcSriXml(models.AbstractModel):
 
         # Aggregate tax lines for totalConImpuestos
         totals = {}
-        for tline in record.line_ids.filtered(
-            lambda l: l.display_type == 'tax' and l.tax_line_id
-        ):
+        for tline in record.line_ids.filtered(lambda l: l.tax_line_id):
             tax = tline.tax_line_id
             codigo = TYPE_CODIGO.get(get_tipo(tax), '2')
             cod_pct = get_porcentaje_code(tax)
