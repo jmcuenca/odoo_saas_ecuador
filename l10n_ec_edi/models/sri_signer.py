@@ -31,7 +31,9 @@ class SriSigner(models.AbstractModel):
         :return: Signed XML bytes
         """
         # 1. Load Certificate & Private Key
-        if isinstance(p12_binary, str):
+        # Odoo Binary fields devuelven SIEMPRE base64 (como str o bytes segun version).
+        # En Odoo 19 viene como bytes(b'MII...'). Hay que decodificar en ambos casos.
+        if isinstance(p12_binary, (str, bytes)):
             p12_binary = base64.b64decode(p12_binary)
 
         try:
