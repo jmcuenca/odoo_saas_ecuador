@@ -2,7 +2,7 @@ name: Deploy odoo_saas_ecuador
 
 on:
   push:
-    branches: [19.0]
+    branches: ["19.0"]
     paths:
       - 'l10n_ec*/**'
       - '.github/workflows/deploy.yml'
@@ -38,4 +38,4 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
         run: |
           ssh -i ~/.ssh/id_ed25519 "${SSH_USER}@${SSH_HOST}" \
-            "sudo DB_NAME='${DB_NAME}' MODULES='${MODULES}' bash /opt/odoo19/odoo_saas_ecuador/scripts/deploy_saas.sh"
+            "sudo DB_NAME='${DB_NAME}' MODULES='${MODULES}' bash /opt/odoo19/third-party-addons/odoo_saas_ecuador/scripts/deploy_saas.sh"

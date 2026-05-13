@@ -6,7 +6,7 @@ set -euo pipefail
 
 ODOO_USER="odoo19"
 ODOO_HOME="/opt/odoo19"
-SAAS_DIR="${ODOO_HOME}/odoo_saas_ecuador"
+SAAS_DIR="${ODOO_HOME}/third-party-addons/odoo_saas_ecuador"
 ODOO_VENV="${ODOO_HOME}/venv"
 ODOO_SOURCE="${ODOO_HOME}/odoo"
 ODOO_CONFIG="${ODOO_HOME}/config/odoo.conf"
