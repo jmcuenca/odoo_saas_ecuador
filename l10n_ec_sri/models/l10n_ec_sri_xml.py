@@ -30,7 +30,10 @@ class L10nEcSriXml(models.AbstractModel):
         date_inv = record.invoice_date.strftime("%d%m%Y")
         doc_type = record.l10n_latam_document_type_id.code  # e.g., '01'
         ruc = record.company_id.vat
-        env = record.company_id.l10n_ec_sri_environment
+        # SRI espera 1 char numerico: 1=produccion, 2=pruebas (certificacion).
+        # El field es Selection('test'/'production'), hay que mapear.
+        env_raw = record.company_id.l10n_ec_sri_environment
+        env = "1" if env_raw == "production" else "2"
 
         # Split Journal: 001-001
         try:
